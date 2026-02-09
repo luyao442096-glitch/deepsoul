@@ -1,0 +1,7 @@
+# .gitignore
+node_modules/
+.next/
+build/
+dist/
+.env.local
+.vercel/
