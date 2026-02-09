@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Lock, CheckCircle, Music, ArrowLeft } from 'lucide-react';
 import { Howl } from 'howler';
-import { useRouter, Link } from 'next/navigation';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function MusicPage() {
   const router = useRouter();

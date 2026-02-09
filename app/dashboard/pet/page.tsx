@@ -5,7 +5,7 @@ import { Canvas } from '@react-three/fiber';
 import { useGLTF, Html, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { Link } from 'next/navigation';
+import Link from 'next/link';
 
 function WoodenFish({ onStrike }: { onStrike: (e: React.MouseEvent) => void }) {
   const groupRef = useRef<THREE.Group>(null);

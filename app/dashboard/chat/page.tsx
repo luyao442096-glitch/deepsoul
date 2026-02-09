@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter, Link } from 'next/navigation';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Music, MessageSquare, Home, Sparkles, Volume2, Mic } from 'lucide-react';
 import PaywallModal from './components/PaywallModal';
