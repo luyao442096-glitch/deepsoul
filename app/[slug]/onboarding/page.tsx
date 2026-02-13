@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Sparkles, Moon, Heart, Brain, Phone, Briefcase, Cloud, Flame, Rocket, Coffee, Sun } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 // 灵魂 7 问数据
@@ -294,7 +294,9 @@ const getColorClass = (color: string): string => {
 
 export default function OnboardingPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const slug = params.slug as string || 'burnout';
+  const source = searchParams.get('source') || '';
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<any[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -350,10 +352,17 @@ export default function OnboardingPage() {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
+    
+    // 构建重定向 URL，包含 source 参数
+    let redirectUrl = `${window.location.origin}/auth/callback?next=/dashboard`;
+    if (source) {
+      redirectUrl += `&source=${source}`;
+    }
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        redirectTo: redirectUrl,
       },
     });
     if (error) console.error("Login failed:", error);

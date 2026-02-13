@@ -41,10 +41,26 @@ export function useSpeech() {
   }, []);
 
   // Speech-to-Text function
-  const startListening = useCallback((onResult: (text: string) => void) => {
-    if (typeof window === 'undefined' || !('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+  const startListening = useCallback(async (onResult: (text: string) => void) => {
+    if (typeof window === 'undefined') {
+      alert('Speech recognition is not available in this environment.');
+      return;
+    }
+
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert('Speech recognition is not supported in this browser.');
       return;
+    }
+
+    // Check for microphone permission
+    if ('navigator' in window && 'mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (error) {
+        console.error('Microphone permission error:', error);
+        alert('Microphone permission is required for voice input. Please allow microphone access in your browser settings.');
+        return;
+      }
     }
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -68,13 +84,28 @@ export function useSpeech() {
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
+      
+      // Provide user-friendly error messages
+      if (event.error === 'not-allowed') {
+        alert('Microphone permission is required. Please allow microphone access in your browser settings.');
+      } else if (event.error === 'no-speech') {
+        // No need to alert for no speech
+      } else {
+        alert('Speech recognition error. Please try again.');
+      }
     };
 
     recognition.onend = () => {
       setIsListening(false);
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (error) {
+      console.error('Failed to start speech recognition:', error);
+      setIsListening(false);
+      alert('Failed to start voice input. Please check your microphone settings.');
+    }
   }, []);
 
   // Stop listening function

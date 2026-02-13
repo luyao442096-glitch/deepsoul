@@ -202,14 +202,14 @@ function ChatContent() {
               <span>Chat</span>
             </button>
             <button 
-              onClick={() => router.push('/dashboard/zen')}
+              onClick={() => router.push('/dashboard/music')}
               className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all hover:bg-[#D8D3CD]`}
             >
               <Music className="w-5 h-5" />
               <span>Music</span>
             </button>
             <button 
-              onClick={() => router.push('/dashboard/pet')}
+              onClick={() => router.push('/dashboard/zen')}
               className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all hover:bg-[#D8D3CD]`}
             >
               <Sparkles className="w-5 h-5" />
@@ -237,10 +237,10 @@ function ChatContent() {
         <button onClick={() => setActiveTab('chat')} className={`p-2 ${activeTab === 'chat' ? theme.accent : ''}`}>
           <MessageSquare className="w-5 h-5" />
         </button>
-        <button onClick={() => router.push('/dashboard/zen')} className="p-2">
+        <button onClick={() => router.push('/dashboard/music')} className="p-2">
           <Music className="w-5 h-5" />
         </button>
-        <button onClick={() => router.push('/dashboard/pet')} className="p-2">
+        <button onClick={() => router.push('/dashboard/zen')} className="p-2">
           <Sparkles className="w-5 h-5" />
         </button>
       </div>

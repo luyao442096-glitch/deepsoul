@@ -9,10 +9,10 @@ export default function DashboardPage() {
 
   const cards = [
     {
-      title: "Deep Zen",
-      desc: "White noise & Meditation",
+      title: "Sleep",
+      desc: "Sleep Immediately",
       icon: <Headphones className="w-8 h-8 mb-4 text-slate-300" />,
-      action: () => router.push('/dashboard/zen'), // Links to /dashboard/zen page
+      action: () => router.push('/dashboard/sleep'), // Links to /dashboard/sleep page
       bg: "bg-slate-800/50 hover:bg-slate-700/50"
     },
     {
@@ -23,10 +23,10 @@ export default function DashboardPage() {
       bg: "bg-slate-800/80 hover:bg-slate-700/80 border-amber-500/30 shadow-[0_0_30px_rgba(245,158,11,0.1)]"
     },
     {
-      title: "Spirit Pet",
-      desc: "Nurture your inner self",
+      title: "Deep Zen",
+      desc: "Meditate Immediately",
       icon: <Ghost className="w-8 h-8 mb-4 text-purple-300" />,
-      action: () => router.push('/dashboard/pet'), // Links to /dashboard/pet page
+      action: () => router.push('/dashboard/zen'), // Links to /dashboard/zen page
       bg: "bg-slate-800/50 hover:bg-slate-700/50"
     }
   ];
