@@ -1,7 +1,7 @@
 import { use } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
-import { getPostData } from '../../../../lib/posts';
+import { getPostData, getCategoryPosts } from '../../../../lib/posts';
 import type { Metadata } from 'next';
 import ArticlePageUI from './ArticlePageUI';
 
@@ -34,6 +34,9 @@ export async function generateMetadata(
 export default function ArticlePage({ params }: { params: Promise<{ slug: string; id: string }> }) {
   const { slug, id } = use(params);
   const post = use(getPostData(slug, id));
+  const relatedPosts = use(getCategoryPosts(slug).then(posts => 
+    posts.filter(p => p.slug !== id).slice(0, 3)
+  ));
   
   if (!post) {
     return (
@@ -53,6 +56,7 @@ export default function ArticlePage({ params }: { params: Promise<{ slug: string
       slug={slug}
       id={id}
       post={post}
+      relatedPosts={relatedPosts}
     />
   );
 }

@@ -79,11 +79,34 @@ const CategoryPageUI = ({ currentSlug, categoryPosts, displayTitle, content }: C
       <section className="max-w-3xl mx-auto px-6 py-24 min-h-[50vh]">
         
         {/* 1. 顶部导航/面包屑 */}
-        <div className="flex items-center space-x-2 text-xs text-white/40 mb-12 uppercase tracking-widest">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Home",
+                  "item": "https://www.deepsoullab.com/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": displayTitle,
+                  "item": `https://www.deepsoullab.com/category/${currentSlug}`
+                }
+              ]
+            })
+          }}
+        />
+        <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-xs text-white/40 mb-12 uppercase tracking-widest">
            <Link href="/" className="hover:text-white transition-colors">Home</Link>
-           <span>/</span>
-           <span className="text-white">{displayTitle}</span>
-        </div>
+           <span aria-hidden="true">/</span>
+           <span aria-current="page" className="text-white">{displayTitle}</span>
+        </nav>
 
         {/* 2. 列表区域 */}
         <div className="flex flex-col space-y-1">

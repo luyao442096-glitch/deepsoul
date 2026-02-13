@@ -18,9 +18,10 @@ interface ArticlePageUIProps {
     category: string;
     content: string;
   };
+  relatedPosts?: any[];
 }
 
-const ArticlePageUI = ({ slug, id, post }: ArticlePageUIProps) => {
+const ArticlePageUI = ({ slug, id, post, relatedPosts = [] }: ArticlePageUIProps) => {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -183,16 +184,51 @@ const ArticlePageUI = ({ slug, id, post }: ArticlePageUIProps) => {
       {/* --- 第二屏：文章内容 (优化版) --- */}
       <section className="relative z-10 py-20">
         {/* 面包屑导航 */}
-        <nav className="max-w-4xl mx-auto px-6 mb-8">
-          <div className="flex items-center space-x-2 text-xs text-white/40 uppercase tracking-widest">
-            <Link href="/" className="hover:text-white transition-colors">Home</Link>
-            <span>/</span>
-            <Link href={`/category/${slug}`} className="hover:text-white transition-colors">
-              {post.category}
-            </Link>
-            <span>/</span>
-            <span className="text-white truncate max-w-[200px]">{post.title}</span>
-          </div>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Home",
+                  "item": "https://www.deepsoullab.com/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": post.category,
+                  "item": `https://www.deepsoullab.com/category/${slug}`
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 3,
+                  "name": post.title,
+                  "item": `https://www.deepsoullab.com/category/${slug}/${id}`
+                }
+              ]
+            })
+          }}
+        />
+        <nav aria-label="Breadcrumb" className="max-w-4xl mx-auto px-6 mb-8">
+          <ol className="flex items-center space-x-2 text-xs text-white/40 uppercase tracking-widest">
+            <li>
+              <Link href="/" className="hover:text-white transition-colors">Home</Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li>
+              <Link href={`/category/${slug}`} className="hover:text-white transition-colors">
+                {post.category}
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li aria-current="page">
+              <span className="text-white truncate max-w-[200px]">{post.title}</span>
+            </li>
+          </ol>
         </nav>
         
         {/* 文章内容 */}
@@ -328,6 +364,29 @@ const ArticlePageUI = ({ slug, id, post }: ArticlePageUIProps) => {
             </div>
           </motion.div>
         </div>
+
+        {/* 相关文章推荐 */}
+        {relatedPosts.length > 0 && (
+          <div className="max-w-4xl mx-auto px-6 mt-16">
+            <h3 className="text-2xl font-bold mb-8 text-white">Related Articles</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {relatedPosts.map((relatedPost) => (
+                <Link
+                  key={relatedPost.slug}
+                  href={`/category/${slug}/${relatedPost.slug}`}
+                  className="group block p-6 rounded-lg bg-white/5 hover:bg-white/10 transition-all border border-white/10"
+                >
+                  <h4 className="text-lg font-medium mb-2 text-white group-hover:text-white/90 transition-colors line-clamp-2">
+                    {relatedPost.title}
+                  </h4>
+                  <p className="text-sm text-gray-400 line-clamp-3">
+                    {relatedPost.description}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
         
         {/* 底部温馨提示 */}
         <footer className="max-w-4xl mx-auto px-6 mt-16 py-12 text-center border-t border-white/10">
