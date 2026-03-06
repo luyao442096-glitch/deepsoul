@@ -5,7 +5,7 @@ import { Lock, CheckCircle, Star, Calendar } from 'lucide-react';
 import PayPalCheckout from './PayPalCheckout';
 
 interface PaywallModalProps {
-  onSubscribe: () => void;
+  onSubscribe: (plan: 'weekly' | 'monthly') => void;
 }
 
 export default function PaywallModal({ onSubscribe }: PaywallModalProps) {
@@ -33,7 +33,7 @@ export default function PaywallModal({ onSubscribe }: PaywallModalProps) {
   const handlePaymentSuccess = () => {
     setIsSuccess(true);
     setTimeout(() => {
-        onSubscribe();
+        onSubscribe(selectedPlan);
     }, 2000);
   };
 
@@ -73,7 +73,7 @@ export default function PaywallModal({ onSubscribe }: PaywallModalProps) {
                    Continue Your Journey
                  </h3>
                  <p className="text-white/50 text-sm">
-                   Haru is ready to guide you deeper. Choose your path.
+                   Da Qiang is ready to guide you deeper. Choose your path.
                  </p>
                </div>
 

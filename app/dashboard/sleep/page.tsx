@@ -7,10 +7,23 @@ import { Howl } from 'howler';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+// 订阅计划类型定义
+type SubscriptionPlan = 'weekly' | 'monthly';
+
+interface SubscriptionData {
+  isSubscribed: boolean;
+  plan: SubscriptionPlan;
+  expiry: number;
+  startDate: number;
+}
+
 export default function MusicPage() {
   const router = useRouter();
   // === STATE ===
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriptionExpiry, setSubscriptionExpiry] = useState<number | null>(null);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan | null>(null);
+  const [showExpiryWarning, setShowExpiryWarning] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [currentSong, setCurrentSong] = useState(0);
@@ -62,14 +75,68 @@ export default function MusicPage() {
     }
   ];
   
-  // === LOAD SUBSCRIPTION STATUS ===
+  // === Check subscription status on load ===
   useEffect(() => {
-    // Load subscription status from localStorage
-    const savedSubscription = localStorage.getItem('isSubscribed');
-    if (savedSubscription) {
-      setIsSubscribed(JSON.parse(savedSubscription));
-    }
-  }, []);
+    const checkSubscription = () => {
+      const savedSubscription = localStorage.getItem('deepSoulSubscription');
+      if (savedSubscription) {
+        try {
+          const data: SubscriptionData = JSON.parse(savedSubscription);
+          const now = Date.now();
+          
+          if (data.isSubscribed && data.expiry && now < data.expiry) {
+            setIsSubscribed(true);
+            setSubscriptionExpiry(data.expiry);
+            setSubscriptionPlan(data.plan);
+            
+            // 检查是否快到期（剩余时间少于 24 小时）
+            const hoursRemaining = (data.expiry - now) / (1000 * 60 * 60);
+            if (hoursRemaining < 24 && hoursRemaining > 0) {
+              setShowExpiryWarning(true);
+            }
+          } else {
+            // Subscription expired or invalid
+            setIsSubscribed(false);
+            setSubscriptionExpiry(null);
+            setSubscriptionPlan(null);
+            localStorage.removeItem('deepSoulSubscription');
+          }
+        } catch (error) {
+          console.error('Error parsing subscription data:', error);
+          localStorage.removeItem('deepSoulSubscription');
+        }
+      }
+    };
+
+    checkSubscription();
+    
+    // 每分钟检查一次是否快到期
+    const checkInterval = setInterval(() => {
+      const savedSubscription = localStorage.getItem('deepSoulSubscription');
+      if (savedSubscription) {
+        try {
+          const data: SubscriptionData = JSON.parse(savedSubscription);
+          const now = Date.now();
+          const hoursRemaining = (data.expiry - now) / (1000 * 60 * 60);
+          
+          if (hoursRemaining < 24 && hoursRemaining > 0 && !showExpiryWarning) {
+            setShowExpiryWarning(true);
+          } else if (hoursRemaining <= 0) {
+            // 订阅已过期
+            setIsSubscribed(false);
+            setSubscriptionExpiry(null);
+            setSubscriptionPlan(null);
+            setShowExpiryWarning(false);
+            localStorage.removeItem('deepSoulSubscription');
+          }
+        } catch (error) {
+          console.error('Error checking subscription:', error);
+        }
+      }
+    }, 60000); // 每分钟检查一次
+    
+    return () => clearInterval(checkInterval);
+  }, [showExpiryWarning]);
   
   // === UPDATE MUSIC LIST BASED ON SUBSCRIPTION ===
   const updatedMusicList = musicList.map((song, index) => ({
@@ -102,422 +169,482 @@ export default function MusicPage() {
     soundRef.current = new Howl({
       src: [song.src],
       volume: isMuted ? 0 : volume,
-      onplay: () => {
-        setIsPlaying(true);
-        setCurrentSong(index);
-        
-        // Start progress update interval
-        progressIntervalRef.current = setInterval(() => {
-          if (soundRef.current) {
-            const seek = soundRef.current.seek();
-            const duration = soundRef.current.duration();
-            setProgress((seek / duration) * 100);
-            
-            // Track play time for first song (free trial)
-            if (index === 0 && !isSubscribed) {
-              setPlayTime(Math.floor(seek));
-              // Check if 10 minutes (600 seconds) reached
-              if (Math.floor(seek) >= 600) {
-                soundRef.current?.stop();
-                setShowPaywall(true);
-              }
-            }
-          }
-        }, 100);
-      },
-      onpause: () => {
-        setIsPlaying(false);
-      },
-      onstop: () => {
-        setIsPlaying(false);
-        setProgress(0);
-        if (progressIntervalRef.current) {
-          clearInterval(progressIntervalRef.current);
-        }
-      },
       onend: () => {
         setIsPlaying(false);
         setProgress(0);
         if (progressIntervalRef.current) {
           clearInterval(progressIntervalRef.current);
         }
-        // Auto play next song if subscribed
-        if (isSubscribed) {
-          const nextIndex = (index + 1) % updatedMusicList.length;
-          playSound(nextIndex);
-        }
       }
     });
     
-    // Play the sound
+    // Play sound
     soundRef.current.play();
-  };
-  
-  // === TOGGLE PLAY/PAUSE ===
-  const togglePlayPause = () => {
-    if (!soundRef.current) {
-      // If no sound is loaded, play the current song
-      playSound(currentSong);
-      return;
-    }
+    setIsPlaying(true);
+    setCurrentSong(index);
     
-    if (isPlaying) {
-      soundRef.current.pause();
-    } else {
-      soundRef.current.play();
-    }
+    // Update progress every 100ms
+    progressIntervalRef.current = setInterval(() => {
+      if (soundRef.current) {
+        const duration = soundRef.current.duration();
+        const seek = soundRef.current.seek();
+        setProgress((seek / duration) * 100);
+        setPlayTime(Math.floor(seek));
+        
+        // Update song duration
+        if (updatedMusicList[index].duration === 0) {
+          updatedMusicList[index].duration = duration;
+        }
+      }
+    }, 100);
   };
   
-  // === SKIP TO PREVIOUS SONG ===
-  const skipPrevious = () => {
-    if (!isSubscribed && currentSong > 0) {
-      // If not subscribed, can only play first song
-      return;
-    }
-    const prevIndex = (currentSong - 1 + updatedMusicList.length) % updatedMusicList.length;
-    playSound(prevIndex);
-  };
-  
-  // === SKIP TO NEXT SONG ===
-  const skipNext = () => {
-    if (!isSubscribed) {
-      // If not subscribed, can only play first song
-      return;
-    }
-    const nextIndex = (currentSong + 1) % updatedMusicList.length;
-    playSound(nextIndex);
-  };
-  
-  // === HANDLE PROGRESS BAR CLICK ===
-  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!soundRef.current) return;
-    
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const percentage = clickX / rect.width;
-    const duration = soundRef.current.duration();
-    const seekTime = duration * percentage;
-    
-    soundRef.current.seek(seekTime);
-    setProgress(percentage * 100);
-  };
-  
-  // === HANDLE VOLUME CHANGE ===
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
-    
+  // === PAUSE SOUND ===
+  const pauseSound = () => {
     if (soundRef.current) {
-      soundRef.current.volume(newVolume);
+      soundRef.current.pause();
+      setIsPlaying(false);
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    }
+  };
+  
+  // === RESUME SOUND ===
+  const resumeSound = () => {
+    if (soundRef.current) {
+      soundRef.current.play();
+      setIsPlaying(true);
+      
+      // Restart progress interval
+      progressIntervalRef.current = setInterval(() => {
+        if (soundRef.current) {
+          const duration = soundRef.current.duration();
+          const seek = soundRef.current.seek();
+          setProgress((seek / duration) * 100);
+          setPlayTime(Math.floor(seek));
+        }
+      }, 100);
     }
   };
   
   // === TOGGLE MUTE ===
   const toggleMute = () => {
-    if (!soundRef.current) return;
-    
-    const newMuted = !isMuted;
-    setIsMuted(newMuted);
-    soundRef.current.volume(newMuted ? 0 : volume);
+    if (soundRef.current) {
+      if (isMuted) {
+        soundRef.current.volume(volume);
+      } else {
+        soundRef.current.volume(0);
+      }
+      setIsMuted(!isMuted);
+    }
   };
   
-  // === TOGGLE SUBSCRIPTION ===
-  const toggleSubscription = () => {
-    const newSubscription = !isSubscribed;
-    setIsSubscribed(newSubscription);
-    localStorage.setItem('isSubscribed', JSON.stringify(newSubscription));
+  // === ADJUST VOLUME ===
+  const adjustVolume = (newVolume: number) => {
+    setVolume(newVolume);
+    if (soundRef.current && !isMuted) {
+      soundRef.current.volume(newVolume);
+    }
   };
   
-  // === CLEANUP ===
-  useEffect(() => {
-    return () => {
-      if (soundRef.current) {
-        soundRef.current.stop();
-      }
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-      }
-    };
-  }, []);
+  // === SKIP TO PREVIOUS ===
+  const skipToPrevious = () => {
+    const previousIndex = currentSong > 0 ? currentSong - 1 : updatedMusicList.length - 1;
+    playSound(previousIndex);
+  };
+  
+  // === SKIP TO NEXT ===
+  const skipToNext = () => {
+    const nextIndex = currentSong < updatedMusicList.length - 1 ? currentSong + 1 : 0;
+    playSound(nextIndex);
+  };
   
   // === FORMAT TIME ===
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // === HANDLE PAYMENT SUCCESS ===
+  const handlePaymentSuccess = (plan: SubscriptionPlan) => {
+    // Set subscription with expiry based on plan
+    const now = Date.now();
+    const days = plan === 'weekly' ? 7 : 30;
+    const expiry = now + (days * 24 * 60 * 60 * 1000);
+    
+    localStorage.setItem('deepSoulSubscription', JSON.stringify({
+      isSubscribed: true,
+      plan,
+      expiry,
+      startDate: now
+    }));
+    
+    setIsSubscribed(true);
+    setSubscriptionExpiry(expiry);
+    setSubscriptionPlan(plan);
+    setShowExpiryWarning(false);
+    setShowPaywall(false);
+  };
+  
+  // 格式化剩余时间
+  const formatTimeRemaining = (expiry: number) => {
+    const now = Date.now();
+    const diff = expiry - now;
+    
+    if (diff <= 0) return '已过期';
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+      return `${days}天 ${hours}小时`;
+    } else if (hours > 0) {
+      return `${hours}小时 ${minutes}分钟`;
+    } else {
+      return `${minutes}分钟`;
+    }
+  };
+
+  // 获取计划显示名称
+  const getPlanName = (plan: SubscriptionPlan) => {
+    return plan === 'weekly' ? '一周试用' : '一月体验';
   };
   
   return (
-    <div className="min-h-screen w-full bg-[#F8F5F0] text-[#333333] flex flex-col">
-      {/* Breadcrumb Navigation */}
-      <div className="absolute top-6 left-6 z-50 flex items-center gap-2 text-[#666666] text-sm font-serif">
-        <Link href="/dashboard" className="hover:text-[#333333] transition-colors">Dashboard</Link>
-        <span>/</span>
-        <span className="text-[#333333]">Sleep</span>
-      </div>
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-white border-b border-[#A67C52]/30 px-4 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+    <div className="min-h-screen bg-[#F8F5F0] text-[#333333] flex flex-col md:flex-row">
+      {/* Sidebar - Desktop */}
+      <div className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 z-30 bg-[#E8E3DD] border-r border-[#A67C52]/30">
+        <div className="p-6 border-b border-[#A67C52]/30">
           <div className="flex items-center gap-3">
-            {/* Back Button */}
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="p-2 rounded-full transition-all hover:bg-gray-100"
-              title="Back to Dashboard"
-            >
-              <ArrowLeft className="w-5 h-5 text-[#666666]" />
-            </button>
-            
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#A67C52] flex items-center justify-center">
-                <Music className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-serif font-semibold">Music Sanctuary</h1>
-                <p className="text-xs text-[#666666]">Your personalized soundscape</p>
-              </div>
+            <div className="w-12 h-12 rounded-full bg-[#A67C52] flex items-center justify-center">
+              <span className="text-white font-bold text-xl">DQ</span>
+            </div>
+            <div>
+              <h2 className="font-semibold">Da Qiang</h2>
+              <p className="text-xs text-[#666666]">Northeast Buddy</p>
             </div>
           </div>
-          
-          {/* Subscription Status */}
-          <button
-            onClick={toggleSubscription}
-            className={`px-4 py-2 rounded-full text-sm transition-all ${
-              isSubscribed
-                ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-            }`}
+        </div>
+        
+        <div className="flex-1 p-6 space-y-4">
+          <nav className="space-y-2">
+            <button 
+              onClick={() => router.push('/dashboard/chat')}
+              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all hover:bg-[#D8D3CD]`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span>Chat</span>
+            </button>
+            <button 
+              onClick={() => router.push('/dashboard/sleep')}
+              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all bg-[#A67C52] text-white hover:bg-[#8B6541]`}
+            >
+              <Music className="w-5 h-5" />
+              <span>Sleep</span>
+            </button>
+            <button 
+              onClick={() => router.push('/dashboard/zen')}
+              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all hover:bg-[#D8D3CD]`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v4"></path><path d="M15 9a5 5 0 1 0-10 0"/></svg>
+              <span>Zen</span>
+            </button>
+          </nav>
+        </div>
+        
+        <div className="p-6 border-t border-[#A67C52]/30">
+          <button 
+            onClick={() => router.push('/dashboard')}
+            className="w-full flex items-center gap-3 p-3 rounded-lg transition-all hover:bg-[#D8D3CD]"
           >
-            {isSubscribed ? (
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4" />
-                <span>Subscribed</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Lock className="w-4 h-4" />
-                <span>Subscribe</span>
-              </div>
-            )}
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+            <span>Home</span>
           </button>
         </div>
-      </header>
-      
+      </div>
+
+      {/* Mobile Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-[#A67C52]/30 flex justify-around items-center p-3">
+        <button onClick={() => router.push('/dashboard')} className="p-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+        </button>
+        <button onClick={() => router.push('/dashboard/chat')} className="p-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </button>
+        <button onClick={() => router.push('/dashboard/sleep')} className="p-2 text-[#A67C52]">
+          <Music className="w-5 h-5" />
+        </button>
+        <button onClick={() => router.push('/dashboard/zen')} className="p-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v4"></path><path d="M15 9a5 5 0 1 0-10 0"/></svg>
+        </button>
+      </div>
+
       {/* Main Content */}
-      <main className="flex-1 max-w-4xl mx-auto px-4 py-8">
-        {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
-        >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg mx-auto mb-4"
-          >
-            <Music className="w-8 h-8 text-white" />
-          </motion.div>
-          <h2 className="text-3xl font-serif font-bold mb-2">Find Your Flow</h2>
-          <p className="text-[#666666] max-w-2xl mx-auto">
-            Curated soundscapes to help you relax, focus, and sleep better.
-            {!isSubscribed && ' First track is free for 10 minutes. Subscribe to unlock all tracks.'}
-          </p>
-        </motion.div>
-        
-        {/* Music List */}
-        <div className="space-y-4 mb-12">
-          {updatedMusicList.map((song, index) => (
-            <motion.div
-              key={song.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-              className={`p-4 rounded-xl border transition-all ${
-                index === currentSong
-                  ? 'bg-amber-50 border-amber-200 shadow-sm'
-                  : 'bg-white border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => playSound(index)}
-                    disabled={!song.unlocked}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                      !song.unlocked
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : index === currentSong && isPlaying
-                        ? 'bg-amber-600 text-white hover:bg-amber-700'
-                        : 'bg-amber-100 text-amber-600 hover:bg-amber-200'
-                    }`}
-                  >
-                    {!song.unlocked ? (
-                      <Lock className="w-5 h-5" />
-                    ) : index === currentSong && isPlaying ? (
-                      <Pause className="w-5 h-5" />
-                    ) : (
-                      <Play className="w-5 h-5 ml-0.5" />
-                    )}
-                  </button>
-                  
-                  <div>
-                    <h3 className={`font-medium ${
-                      !song.unlocked ? 'text-gray-400' : ''
-                    }`}>
-                      {song.title}
-                    </h3>
-                    <p className="text-xs text-gray-400">
-                      {!song.unlocked && 'Locked - Subscribe to unlock'}
-                    </p>
+      <div className="flex-1 md:ml-64 flex flex-col h-screen relative z-10">
+        {/* Breadcrumb Navigation */}
+        <div className="ml-4 md:ml-4 mt-4 mb-2 flex items-center gap-2 text-[#666666] text-sm font-serif">
+          <Link href="/dashboard" className="hover:text-[#333333] transition-colors">Dashboard</Link>
+          <span>/</span>
+          <span className="text-[#333333]">Sleep</span>
+        </div>
+        {/* Header */}
+        <header className="sticky top-0 z-20 bg-white border-b border-[#A67C52]/30 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={() => router.push('/dashboard')} className="p-2 transition-all text-[#666666] hover:text-[#333333]">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="font-semibold">Sleep Music</h1>
+          </div>
+        </header>
+
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto px-4 py-6">
+          <div className="max-w-3xl mx-auto space-y-8">
+            {/* 会员信息显示 */}
+            {isSubscribed && subscriptionExpiry && subscriptionPlan && (
+              <div className="flex justify-center mb-4">
+                <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl px-6 py-3 text-center">
+                  <div className="flex items-center gap-2 text-amber-600">
+                    <span className="text-sm font-medium">
+                      {getPlanName(subscriptionPlan)}会员
+                    </span>
+                    <span className="text-gray-400">|</span>
+                    <span className="text-sm">
+                      剩余时间: {formatTimeRemaining(subscriptionExpiry)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 会员快到期提醒 */}
+            {showExpiryWarning && (
+              <div className="flex justify-center mb-4">
+                <div className="bg-red-500/20 border border-red-500/40 rounded-xl px-6 py-3 text-center animate-pulse">
+                  <div className="flex items-center gap-2 text-red-600">
+                    <span className="text-sm font-medium">
+                      ⚠️ 您的会员即将在24小时内到期
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Music Player */}
+            <div className="bg-white border border-[#A67C52]/30 rounded-2xl p-6 shadow-sm">
+              <div className="space-y-6">
+                {/* Album Art Placeholder */}
+                <div className="flex justify-center">
+                  <div className="w-48 h-48 bg-[#A67C52] rounded-xl flex items-center justify-center">
+                    <Music className="w-16 h-16 text-white" />
                   </div>
                 </div>
                 
-                <div className="text-sm text-gray-500">
-                  {index === currentSong && soundRef.current
-                    ? formatTime(soundRef.current.seek())
-                    : '--:--'}
+                {/* Song Title */}
+                <div className="text-center">
+                  <h2 className="text-xl font-semibold">{updatedMusicList[currentSong].title}</h2>
+                  <p className="text-[#666666] text-sm">Deep Soul Lab</p>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs text-[#666666]">
+                    <span>{formatTime(playTime)}</span>
+                    <span>{formatTime(updatedMusicList[currentSong].duration)}</span>
+                  </div>
+                  <div className="h-2 bg-[#E8E3DD] rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-[#A67C52] rounded-full" 
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                {/* Controls */}
+                <div className="flex items-center justify-center gap-6">
+                  <button 
+                    onClick={skipToPrevious} 
+                    className="p-2 text-[#A67C52] hover:bg-[#A67C52]/10 rounded-full"
+                  >
+                    <SkipBack className="w-6 h-6" />
+                  </button>
+                  {isPlaying ? (
+                    <button 
+                      onClick={pauseSound} 
+                      className="p-3 bg-[#A67C52] text-white rounded-full hover:bg-[#8B6541]"
+                    >
+                      <Pause className="w-6 h-6" />
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => playSound(currentSong)} 
+                      className="p-3 bg-[#A67C52] text-white rounded-full hover:bg-[#8B6541]"
+                    >
+                      <Play className="w-6 h-6" />
+                    </button>
+                  )}
+                  <button 
+                    onClick={skipToNext} 
+                    className="p-2 text-[#A67C52] hover:bg-[#A67C52]/10 rounded-full"
+                  >
+                    <SkipForward className="w-6 h-6" />
+                  </button>
+                </div>
+                
+                {/* Volume Control */}
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={toggleMute} 
+                    className="p-2 text-[#A67C52]"
+                  >
+                    {isMuted ? (
+                      <VolumeX className="w-5 h-5" />
+                    ) : (
+                      <Volume2 className="w-5 h-5" />
+                    )}
+                  </button>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="1" 
+                    step="0.05" 
+                    value={volume} 
+                    onChange={(e) => adjustVolume(parseFloat(e.target.value))}
+                    className="flex-1 h-2 bg-[#E8E3DD] rounded-full appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #A67C52 0%, #A67C52 ${volume * 100}%, #E8E3DD ${volume * 100}%, #E8E3DD 100%)`
+                    }}
+                  />
                 </div>
               </div>
-            </motion.div>
-          ))}
-        </div>
-        
-        {/* Player Controls */}
-        <div className="bg-white rounded-2xl border border-[#A67C52]/30 shadow-sm p-6">
-          {/* Progress Bar */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-500">
-                {soundRef.current ? formatTime(soundRef.current.seek()) : '0:00'}
-              </span>
-              <span className="text-sm text-gray-500">
-                {soundRef.current ? formatTime(soundRef.current.duration()) : '0:00'}
-              </span>
             </div>
-            <div
-              onClick={handleProgressClick}
-              className="w-full h-2 bg-gray-200 rounded-full cursor-pointer relative"
-            >
-              <div
-                className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full"
-                style={{ width: `${progress}%` }}
-              />
-              <div
-                className="absolute w-4 h-4 bg-white border-2 border-amber-500 rounded-full shadow-sm"
-                style={{ left: `${progress}%`, transform: 'translateX(-50%)', top: '-3px' }}
-              />
+            
+            {/* Music List */}
+            <div className="space-y-2">
+              <h3 className="font-semibold text-lg">Music Library</h3>
+              {updatedMusicList.map((song, index) => (
+                <div 
+                  key={song.id} 
+                  className={`flex items-center justify-between p-4 rounded-xl border transition-all ${index === currentSong ? 'bg-[#A67C52]/10 border-[#A67C52]/30' : 'bg-white border-[#A67C52]/30 hover:bg-[#F8F5F0]'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#A67C52]/20 flex items-center justify-center">
+                      <Music className="w-5 h-5 text-[#A67C52]" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{song.title}</h4>
+                      <p className="text-xs text-[#666666]">{song.unlocked ? 'Unlocked' : 'Locked'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!song.unlocked && (
+                      <Lock className="w-4 h-4 text-[#666666]" />
+                    )}
+                    <button 
+                      onClick={() => playSound(index)}
+                      className="p-2 bg-[#A67C52] text-white rounded-full hover:bg-[#8B6541]"
+                    >
+                      <Play className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-          
-          {/* Control Buttons */}
-          <div className="flex items-center justify-center gap-6 mb-6">
-            <button
-              onClick={skipPrevious}
-              disabled={!isSubscribed && currentSong === 0}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                (!isSubscribed && currentSong === 0)
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-amber-100 text-amber-600 hover:bg-amber-200'
-              }`}
-            >
-              <SkipBack className="w-5 h-5" />
-            </button>
-            
-            <button
-              onClick={togglePlayPause}
-              className="w-16 h-16 rounded-full bg-gradient-to-r from-amber-500 to-amber-700 text-white flex items-center justify-center shadow-md hover:shadow-lg transition-all"
-            >
-              {isPlaying ? (
-                <Pause className="w-6 h-6" />
-              ) : (
-                <Play className="w-6 h-6 ml-1" />
-              )}
-            </button>
-            
-            <button
-              onClick={skipNext}
-              disabled={!isSubscribed}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                !isSubscribed
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-amber-100 text-amber-600 hover:bg-amber-200'
-              }`}
-            >
-              <SkipForward className="w-5 h-5" />
-            </button>
-          </div>
-          
-          {/* Volume Control */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={toggleMute}
-              className="text-amber-600 hover:text-amber-700 transition-colors"
-            >
-              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-            </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.05"
-              value={isMuted ? 0 : volume}
-              onChange={handleVolumeChange}
-              className="flex-1 h-2 bg-gray-200 rounded-full appearance-none cursor-pointer"
-              style={{
-                background: `linear-gradient(to right, #F59E0B ${(isMuted ? 0 : volume) * 100}%, #E5E7EB ${(isMuted ? 0 : volume) * 100}%)`
-              }}
-            />
-          </div>
-        </div>
-      </main>
+        </main>
+      </div>
       
       {/* Paywall Modal */}
       {showPaywall && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
-                <Lock className="w-8 h-8 text-amber-600" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          {/* Dark Overlay */}
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-sm animate-in fade-in duration-500" />
+
+          <div className="relative bg-[#0a0a0a] border border-white/10 rounded-[2rem] max-w-md w-full shadow-[0_0_60px_rgba(245,158,11,0.15)] animate-in zoom-in-95 duration-300 overflow-hidden">
+            
+            {/* Top Decoration */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-50" />
+
+            <div className="p-8">
+              
+              {/* Header */}
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 text-amber-500 mb-2 bg-amber-900/20 px-3 py-1 rounded-full border border-amber-500/20">
+                  <Lock className="w-3 h-3" />
+                  <span className="text-xs font-medium tracking-wide uppercase">Premium Access</span>
+                </div>
+                <h3 className="font-serif text-2xl text-white mb-2">
+                  Unlock Full Library
+                </h3>
+                <p className="text-white/50 text-sm">
+                  Access all sleep music tracks with a premium subscription.
+                </p>
               </div>
-              <h3 className="text-2xl font-serif font-bold mb-2">Unlock All Tracks</h3>
-              <p className="text-gray-600 mb-6">
-                {currentSong === 0 && !isSubscribed
-                  ? "Your free trial has ended. Subscribe to continue listening."
-                  : "Subscribe to unlock all music tracks and enjoy unlimited listening."}
-              </p>
-              <div className="space-y-3">
-                <button
-                  onClick={() => {
-                    setIsSubscribed(true);
-                    localStorage.setItem('isSubscribed', JSON.stringify(true));
-                    setShowPaywall(false);
-                  }}
-                  className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-700 text-white rounded-full font-medium hover:shadow-lg transition-all"
+
+              {/* PLAN SELECTION CARDS */}
+              <div className="space-y-3 mb-6">
+                
+                {/* OPTION 1: WEEKLY */}
+                <button 
+                  onClick={() => handlePaymentSuccess('weekly')}
+                  className="w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 relative group bg-white/10 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.1)]"
                 >
-                  Subscribe Now
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full border flex items-center justify-center border-amber-500">
+                      <div className="w-2.5 h-2.5 bg-amber-500 rounded-full" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-white font-medium text-sm">Weekly Rescue</p>
+                      <p className="text-white/40 text-xs">$0.71 / day</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white font-serif text-lg">$4.99</p>
+                    <p className="text-white/30 text-xs">/ week</p>
+                  </div>
                 </button>
-                <button
-                  onClick={() => setShowPaywall(false)}
-                  className="w-full py-3 bg-gray-100 text-gray-700 rounded-full font-medium hover:bg-gray-200 transition-all"
+
+                {/* OPTION 2: MONTHLY (HIGHLIGHTED) */}
+                <button 
+                  onClick={() => handlePaymentSuccess('monthly')}
+                  className="w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 relative bg-gradient-to-r from-amber-900/40 to-black border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.15)]"
                 >
-                  Maybe Later
+                  {/* Badge */}
+                  <div className="absolute -top-3 right-4 bg-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">
+                    BEST VALUE
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full border flex items-center justify-center border-amber-500">
+                      <div className="w-2.5 h-2.5 bg-amber-500 rounded-full" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-white font-medium text-sm">Monthly Healing</p>
+                      <p className="text-amber-200/70 text-xs">Save $2.00 vs weekly</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-amber-400 font-serif text-xl">$17.99</p>
+                    <p className="text-white/30 text-xs">/ month</p>
+                  </div>
                 </button>
+
               </div>
+              
+              {/* Close Button */}
+              <button 
+                onClick={() => setShowPaywall(false)}
+                className="w-full py-3 border border-white/20 rounded-xl text-white hover:bg-white/5 transition-colors"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
       )}
-      
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-6">
-        <div className="max-w-4xl mx-auto px-4 text-center text-sm text-gray-500">
-          <p>Music Sanctuary © 2024</p>
-          <p className="mt-1">Curated soundscapes for your well-being</p>
-        </div>
-      </footer>
     </div>
   );
 }

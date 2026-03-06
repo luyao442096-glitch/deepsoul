@@ -10,17 +10,36 @@ export default function LoginPage() {
 
   // 处理 Google 登录
   const handleGoogleLogin = async () => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-      },
-    });
-    if (error) console.error("Login failed:", error);
+    try {
+      console.log('Starting Google login...');
+      
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Missing Supabase environment variables');
+      }
+      
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+      
+      console.log('Supabase client created successfully');
+      console.log('Current origin:', window.location.origin);
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        },
+      });
+      
+      if (error) {
+        console.error('Login failed:', error);
+      } else {
+        console.log('Login initiated successfully');
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+    }
   };
 
   return (

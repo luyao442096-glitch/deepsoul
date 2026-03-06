@@ -9,6 +9,16 @@ import PaywallModal from './components/PaywallModal';
 import { getGreeting, getNextReply, getThinkingTime, getTypingText } from './lib/chatLogic';
 import { useSpeech } from './hooks/useSpeech';
 
+// 订阅计划类型定义
+type SubscriptionPlan = 'weekly' | 'monthly';
+
+interface SubscriptionData {
+  isSubscribed: boolean;
+  plan: SubscriptionPlan;
+  expiry: number;
+  startDate: number;
+}
+
 // New theme configuration
 const theme = {
   bg: "bg-[#F8F5F0]",
@@ -54,7 +64,73 @@ function ChatContent() {
   // === MONETIZATION STATE ===
   const [messageCount, setMessageCount] = useState(0);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriptionExpiry, setSubscriptionExpiry] = useState<number | null>(null);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan | null>(null);
+  const [showExpiryWarning, setShowExpiryWarning] = useState(false);
   const FREE_LIMIT = 7;
+
+  // === Check subscription status on load ===
+  useEffect(() => {
+    const checkSubscription = () => {
+      const savedSubscription = localStorage.getItem('deepSoulSubscription');
+      if (savedSubscription) {
+        try {
+          const data: SubscriptionData = JSON.parse(savedSubscription);
+          const now = Date.now();
+          
+          if (data.isSubscribed && data.expiry && now < data.expiry) {
+            setIsSubscribed(true);
+            setSubscriptionExpiry(data.expiry);
+            setSubscriptionPlan(data.plan);
+            
+            // 检查是否快到期（剩余时间少于 24 小时）
+            const hoursRemaining = (data.expiry - now) / (1000 * 60 * 60);
+            if (hoursRemaining < 24 && hoursRemaining > 0) {
+              setShowExpiryWarning(true);
+            }
+          } else {
+            // Subscription expired or invalid
+            setIsSubscribed(false);
+            setSubscriptionExpiry(null);
+            setSubscriptionPlan(null);
+            localStorage.removeItem('deepSoulSubscription');
+          }
+        } catch (error) {
+          console.error('Error parsing subscription data:', error);
+          localStorage.removeItem('deepSoulSubscription');
+        }
+      }
+    };
+
+    checkSubscription();
+    
+    // 每分钟检查一次是否快到期
+    const checkInterval = setInterval(() => {
+      const savedSubscription = localStorage.getItem('deepSoulSubscription');
+      if (savedSubscription) {
+        try {
+          const data: SubscriptionData = JSON.parse(savedSubscription);
+          const now = Date.now();
+          const hoursRemaining = (data.expiry - now) / (1000 * 60 * 60);
+          
+          if (hoursRemaining < 24 && hoursRemaining > 0 && !showExpiryWarning) {
+            setShowExpiryWarning(true);
+          } else if (hoursRemaining <= 0) {
+            // 订阅已过期
+            setIsSubscribed(false);
+            setSubscriptionExpiry(null);
+            setSubscriptionPlan(null);
+            setShowExpiryWarning(false);
+            localStorage.removeItem('deepSoulSubscription');
+          }
+        } catch (error) {
+          console.error('Error checking subscription:', error);
+        }
+      }
+    }, 60000); // 每分钟检查一次
+    
+    return () => clearInterval(checkInterval);
+  }, [showExpiryWarning]);
 
   // === SIDEBAR STATE ===
   const [activeTab, setActiveTab] = useState('chat');
@@ -81,7 +157,7 @@ function ChatContent() {
         // Convert to lowercase for consistency with existing code
         const normalizedResult = testResult.toLowerCase();
         
-        // Validate and set the persona
+        // Validate and set persona
         if (['insomnia', 'stress', 'loneliness'].includes(normalizedResult)) {
           setCurrentPersona(normalizedResult);
         }
@@ -135,7 +211,7 @@ function ChatContent() {
       // Build complete messages array including history
       const messagesForAPI = messages.slice(1).concat(newUserMessage);
 
-      // Call the chat API
+      // Call chat API
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -169,15 +245,34 @@ function ChatContent() {
     handleSend();
   };
 
+  // 格式化剩余时间
+  const formatTimeRemaining = (expiry: number) => {
+    const now = Date.now();
+    const diff = expiry - now;
+    
+    if (diff <= 0) return '已过期';
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+      return `${days}天 ${hours}小时`;
+    } else if (hours > 0) {
+      return `${hours}小时 ${minutes}分钟`;
+    } else {
+      return `${minutes}分钟`;
+    }
+  };
+
+  // 获取计划显示名称
+  const getPlanName = (plan: SubscriptionPlan) => {
+    return plan === 'weekly' ? '一周试用' : '一月体验';
+  };
+
   return (
     <div className={`min-h-screen w-full ${theme.bg} ${theme.textMain} flex flex-col md:flex-row`}>
-      {/* Breadcrumb Navigation */}
-      <div className="absolute top-6 left-6 z-50 flex items-center gap-2 text-[#666666] text-sm font-serif">
-        <Link href="/dashboard" className="hover:text-[#333333] transition-colors">Dashboard</Link>
-        <span>/</span>
-        <span className="text-[#333333]">Chat</span>
-      </div>
-      
+
       {/* Sidebar - Desktop */}
       <div className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 z-30 ${theme.sidebar}">
         <div className="p-6 border-b border-[#A67C52]/30">
@@ -202,7 +297,7 @@ function ChatContent() {
               <span>Chat</span>
             </button>
             <button 
-              onClick={() => router.push('/dashboard/music')}
+              onClick={() => router.push('/dashboard/sleep')}
               className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all hover:bg-[#D8D3CD]`}
             >
               <Music className="w-5 h-5" />
@@ -237,7 +332,7 @@ function ChatContent() {
         <button onClick={() => setActiveTab('chat')} className={`p-2 ${activeTab === 'chat' ? theme.accent : ''}`}>
           <MessageSquare className="w-5 h-5" />
         </button>
-        <button onClick={() => router.push('/dashboard/music')} className="p-2">
+        <button onClick={() => router.push('/dashboard/sleep')} className="p-2">
           <Music className="w-5 h-5" />
         </button>
         <button onClick={() => router.push('/dashboard/zen')} className="p-2">
@@ -246,28 +341,56 @@ function ChatContent() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 md:ml-64 flex flex-col h-screen">
+      <div className="flex-1 md:ml-64 flex flex-col h-screen relative z-10">
+        {/* Breadcrumb Navigation */}
+        <div className="ml-4 md:ml-4 mt-4 mb-2 flex items-center gap-2 text-[#666666] text-sm font-serif">
+          <Link href="/dashboard" className="hover:text-[#333333] transition-colors">Dashboard</Link>
+          <span>/</span>
+          <span className="text-[#333333]">Chat</span>
+        </div>
         {/* Header */}
         <header className="sticky top-0 z-20 bg-white border-b border-[#A67C52]/30 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => router.push('/dashboard')} className={`p-2 transition-all ${theme.textSub} hover:${theme.textMain}`}>
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#A67C52] flex items-center justify-center">
-                <span className="text-white font-bold">DQ</span>
-              </div>
-              <div>
-                <h1 className="font-semibold">Da Qiang</h1>
-                <p className="text-xs text-[#666666]">Northeast Buddy</p>
-              </div>
-            </div>
+            <h1 className="font-semibold">Chat</h1>
           </div>
         </header>
 
         {/* Main Chat Area */}
         <main className="flex-1 overflow-y-auto px-4 py-6">
           <div className="max-w-2xl mx-auto space-y-8">
+            {/* 会员信息显示 */}
+            {isSubscribed && subscriptionExpiry && subscriptionPlan && (
+              <div className="flex justify-center mb-4">
+                <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl px-6 py-3 text-center">
+                  <div className="flex items-center gap-2 text-amber-600">
+                    <span className="text-sm font-medium">
+                      {getPlanName(subscriptionPlan)}会员
+                    </span>
+                    <span className="text-gray-400">|</span>
+                    <span className="text-sm">
+                      剩余时间: {formatTimeRemaining(subscriptionExpiry)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 会员快到期提醒 */}
+            {showExpiryWarning && (
+              <div className="flex justify-center mb-4">
+                <div className="bg-red-500/20 border border-red-500/40 rounded-xl px-6 py-3 text-center animate-pulse">
+                  <div className="flex items-center gap-2 text-red-600">
+                    <span className="text-sm font-medium">
+                      ⚠️ 您的会员即将在24小时内到期
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Greeting */}
             <div className="flex w-full justify-start">
               <div className={`px-6 py-4 rounded-2xl ${theme.aiMsg} shadow-md`}>
@@ -320,7 +443,24 @@ function ChatContent() {
 
             {/* Paywall Trigger */}
             {isLimitReached && (
-              <PaywallModal onSubscribe={() => setIsSubscribed(true)} />
+              <PaywallModal onSubscribe={(plan: SubscriptionPlan) => {
+                // Set subscription with expiry based on plan
+                const now = Date.now();
+                const days = plan === 'weekly' ? 7 : 30;
+                const expiry = now + (days * 24 * 60 * 60 * 1000);
+                
+                localStorage.setItem('deepSoulSubscription', JSON.stringify({
+                  isSubscribed: true,
+                  plan,
+                  expiry,
+                  startDate: now
+                }));
+                
+                setIsSubscribed(true);
+                setSubscriptionExpiry(expiry);
+                setSubscriptionPlan(plan);
+                setShowExpiryWarning(false);
+              }} />
             )}
 
             <div ref={messagesEndRef} />

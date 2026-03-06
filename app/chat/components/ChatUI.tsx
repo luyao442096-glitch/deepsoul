@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ChatFooter from './ChatFooter';
 import PaywallModal from './PaywallModal';
-// Import the new advanced logic
+// Import new advanced logic
 import { getGreeting, getNextReply, getThinkingTime, getTypingText } from '../lib/chatLogic';
 
 interface ChatUIProps {
@@ -21,6 +21,16 @@ interface ChatUIProps {
   };
 }
 
+// 订阅计划类型定义
+type SubscriptionPlan = 'weekly' | 'monthly';
+
+interface SubscriptionData {
+  isSubscribed: boolean;
+  plan: SubscriptionPlan;
+  expiry: number;
+  startDate: number;
+}
+
 export default function ChatUI({ currentPersona, onPersonaChange, theme }: ChatUIProps) {
   // === STATE ===
   const [messages, setMessages] = useState([{ role: 'ai', content: '' }]);
@@ -35,7 +45,73 @@ export default function ChatUI({ currentPersona, onPersonaChange, theme }: ChatU
   // === MONETIZATION STATE ===
   const [messageCount, setMessageCount] = useState(0);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriptionExpiry, setSubscriptionExpiry] = useState<number | null>(null);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan | null>(null);
+  const [showExpiryWarning, setShowExpiryWarning] = useState(false);
   const FREE_LIMIT = 7; // UPDATED TO 7 STEPS (The Golden Ratio)
+
+  // === Check subscription status on load ===
+  useEffect(() => {
+    const checkSubscription = () => {
+      const savedSubscription = localStorage.getItem('deepSoulSubscription');
+      if (savedSubscription) {
+        try {
+          const data: SubscriptionData = JSON.parse(savedSubscription);
+          const now = Date.now();
+          
+          if (data.isSubscribed && data.expiry && now < data.expiry) {
+            setIsSubscribed(true);
+            setSubscriptionExpiry(data.expiry);
+            setSubscriptionPlan(data.plan);
+            
+            // 检查是否快到期（剩余时间少于 24 小时）
+            const hoursRemaining = (data.expiry - now) / (1000 * 60 * 60);
+            if (hoursRemaining < 24 && hoursRemaining > 0) {
+              setShowExpiryWarning(true);
+            }
+          } else {
+            // Subscription expired or invalid
+            setIsSubscribed(false);
+            setSubscriptionExpiry(null);
+            setSubscriptionPlan(null);
+            localStorage.removeItem('deepSoulSubscription');
+          }
+        } catch (error) {
+          console.error('Error parsing subscription data:', error);
+          localStorage.removeItem('deepSoulSubscription');
+        }
+      }
+    };
+
+    checkSubscription();
+    
+    // 每分钟检查一次是否快到期
+    const checkInterval = setInterval(() => {
+      const savedSubscription = localStorage.getItem('deepSoulSubscription');
+      if (savedSubscription) {
+        try {
+          const data: SubscriptionData = JSON.parse(savedSubscription);
+          const now = Date.now();
+          const hoursRemaining = (data.expiry - now) / (1000 * 60 * 60);
+          
+          if (hoursRemaining < 24 && hoursRemaining > 0 && !showExpiryWarning) {
+            setShowExpiryWarning(true);
+          } else if (hoursRemaining <= 0) {
+            // 订阅已过期
+            setIsSubscribed(false);
+            setSubscriptionExpiry(null);
+            setSubscriptionPlan(null);
+            setShowExpiryWarning(false);
+            localStorage.removeItem('deepSoulSubscription');
+          }
+        } catch (error) {
+          console.error('Error checking subscription:', error);
+        }
+      }
+    }, 60000); // 每分钟检查一次
+    
+    return () => clearInterval(checkInterval);
+  }, [showExpiryWarning]);
 
   // === 1. INITIAL GREETING ===
   useEffect(() => {
@@ -86,6 +162,31 @@ export default function ChatUI({ currentPersona, onPersonaChange, theme }: ChatU
 
   const isLimitReached = !isSubscribed && messageCount >= FREE_LIMIT;
 
+  // 格式化剩余时间
+  const formatTimeRemaining = (expiry: number) => {
+    const now = Date.now();
+    const diff = expiry - now;
+    
+    if (diff <= 0) return '已过期';
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+      return `${days}天 ${hours}小时`;
+    } else if (hours > 0) {
+      return `${hours}小时 ${minutes}分钟`;
+    } else {
+      return `${minutes}分钟`;
+    }
+  };
+
+  // 获取计划显示名称
+  const getPlanName = (plan: SubscriptionPlan) => {
+    return plan === 'weekly' ? '一周试用' : '一月体验';
+  };
+
   return (
     <div className={`relative z-10 flex flex-col h-full w-full max-w-7xl mx-auto ${theme.textMain}`}>
       
@@ -97,6 +198,36 @@ export default function ChatUI({ currentPersona, onPersonaChange, theme }: ChatU
         
         <div className="flex flex-col gap-10 pb-4 mt-24">
           
+          {/* 会员信息显示 */}
+          {isSubscribed && subscriptionExpiry && subscriptionPlan && (
+            <div className="flex justify-center mb-4">
+              <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl px-6 py-3 text-center">
+                <div className="flex items-center gap-2 text-amber-200">
+                  <span className="text-sm font-medium">
+                    {getPlanName(subscriptionPlan)}会员
+                  </span>
+                  <span className="text-white/30">|</span>
+                  <span className="text-sm">
+                    剩余时间: {formatTimeRemaining(subscriptionExpiry)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 会员快到期提醒 */}
+          {showExpiryWarning && (
+            <div className="flex justify-center mb-4">
+              <div className="bg-red-500/20 border border-red-500/40 rounded-xl px-6 py-3 text-center animate-pulse">
+                <div className="flex items-center gap-2 text-red-200">
+                  <span className="text-sm font-medium">
+                    ⚠️ 您的会员即将在24小时内到期
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* GREETING */}
           <div className="flex w-full justify-center text-center">
             <div className={`max-w-2xl px-8 py-6 rounded-3xl ${theme.container} shadow-2xl`}>
@@ -135,7 +266,24 @@ export default function ChatUI({ currentPersona, onPersonaChange, theme }: ChatU
 
           {/* PAYWALL TRIGGER */}
           {isLimitReached && (
-             <PaywallModal onSubscribe={() => setIsSubscribed(true)} />
+             <PaywallModal onSubscribe={(plan: SubscriptionPlan) => {
+               // Set subscription with expiry based on plan
+               const now = Date.now();
+               const days = plan === 'weekly' ? 7 : 30;
+               const expiry = now + (days * 24 * 60 * 60 * 1000);
+               
+               localStorage.setItem('deepSoulSubscription', JSON.stringify({
+                 isSubscribed: true,
+                 plan,
+                 expiry,
+                 startDate: now
+               }));
+               
+               setIsSubscribed(true);
+               setSubscriptionExpiry(expiry);
+               setSubscriptionPlan(plan);
+               setShowExpiryWarning(false);
+             }} />
           )}
 
           <div ref={messagesEndRef} />
