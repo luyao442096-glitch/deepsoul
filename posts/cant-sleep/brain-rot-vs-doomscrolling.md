@@ -6,8 +6,6 @@ category: "Can't Sleep"
 slug: "brain-rot-vs-doomscrolling"
 ---
 
-```markdown
-
 It starts innocently.
 
 You open your phone to check one notification.
@@ -264,4 +262,3 @@ When you're ready, tap **“Start Incubation”** on the homepage to begin rebui
 Slowly.
 
 On your terms.
-```

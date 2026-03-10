@@ -126,14 +126,15 @@ export default function HomePage() {
       <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px]" />
       
       <div className="z-10 min-h-screen flex flex-col items-center justify-center px-6 relative">
-        <motion.h1 
+        <h1 className="sr-only">Minimalist AI Companion for Healing, Anxiety Relief, and Deep Sleep</h1>
+        <motion.h2 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           className="text-4xl md:text-5xl font-serif mb-8 leading-tight"
         >
           How is your energy?
-        </motion.h1>
+        </motion.h2>
         
         <motion.p 
           initial={{ opacity: 0, y: -10 }}

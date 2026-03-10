@@ -268,18 +268,18 @@ const ArticlePageUI = ({ slug, id, post, relatedPosts = [] }: ArticlePageUIProps
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="bg-gradient-to-br from-white/5 to-white/2 backdrop-blur-md rounded-2xl p-8 md:p-12 shadow-2xl border border-white/10 hover:border-white/20 transition-all duration-500"
+            className="bg-gradient-to-br from-white/5 to-white/2 backdrop-blur-md rounded-2xl p-8 md:p-12 shadow-xl border border-white/10 transition-all duration-500"
           >
             <div className="prose prose-invert prose-lg max-w-none">
               <ReactMarkdown
                 components={{
                   h1: ({ children }) => (
-                    <h1 className="text-2xl md:text-3xl font-bold mt-12 mb-6 text-white border-b border-white/10 pb-3">
+                    <h1 className="text-2xl md:text-3xl font-bold mt-12 mb-6 text-white">
                       {children}
                     </h1>
                   ),
                   h2: ({ children }) => (
-                    <h2 className="text-xl md:text-2xl font-semibold mt-10 mb-5 text-white border-b border-white/5 pb-2">
+                    <h2 className="text-xl md:text-2xl font-semibold mt-10 mb-5 text-white">
                       {children}
                     </h2>
                   ),
@@ -296,7 +296,7 @@ const ArticlePageUI = ({ slug, id, post, relatedPosts = [] }: ArticlePageUIProps
                   a: ({ href, children }) => (
                     <a 
                       href={href} 
-                      className="text-blue-400 hover:text-blue-300 underline decoration-2 decoration-blue-400/30 underline-offset-4"
+                      className="text-blue-400 hover:text-blue-300 underline"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -319,7 +319,7 @@ const ArticlePageUI = ({ slug, id, post, relatedPosts = [] }: ArticlePageUIProps
                     </li>
                   ),
                   blockquote: ({ children }) => (
-                    <blockquote className="border-l-4 border-indigo-500 pl-6 py-4 my-8 italic text-gray-300 bg-indigo-900/10 rounded-r-lg">
+                    <blockquote className="border-l-4 border-indigo-500 pl-6 py-4 my-8 italic text-gray-300">
                       {children}
                     </blockquote>
                   ),

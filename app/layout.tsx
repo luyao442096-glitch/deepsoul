@@ -13,12 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DeepSoul AI - AI-Powered Mental Health Support for Burnout, Anxiety & Sleep",
-  description: "Discover personalized AI support for burnout recovery, anxiety relief, and better sleep. DeepSoul provides 24/7 emotional companionship and mental wellness guidance.",
-  keywords: "AI mental health, burnout recovery, anxiety relief, sleep help, stress management, emotional support, AI companion",
-  authors: [{ name: "DeepSoul AI" }],
-  creator: "DeepSoul AI",
-  publisher: "DeepSoul AI",
+  title: "AI Companion for Healing & Sleep | Deep Soul Lab",
+  description: "A minimalist AI companion designed to help you stop doomscrolling, untangle anxious thoughts, and fall asleep peacefully.",
+  keywords: "AI companion, mental health AI, burnout recovery, anxiety relief, sleep help, stop doomscrolling",
+  authors: [{ name: "Deep Soul Lab" }],
+  creator: "Deep Soul Lab",
+  publisher: "Deep Soul Lab",
   formatDetection: {
     email: false,
     address: false,
@@ -28,14 +28,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://www.deepsoullab.com",
-    title: "DeepSoul AI - AI-Powered Mental Health Support",
-    description: "Discover personalized AI support for burnout recovery, anxiety relief, and better sleep.",
-    siteName: "DeepSoul AI",
+    title: "AI Companion for Healing & Sleep | Deep Soul Lab",
+    description: "A minimalist AI companion designed to help you stop doomscrolling and fall asleep peacefully.",
+    siteName: "Deep Soul Lab",
   },
   twitter: {
     card: "summary_large_image",
-    title: "DeepSoul AI - AI-Powered Mental Health Support",
-    description: "Discover personalized AI support for burnout recovery, anxiety relief, and better sleep.",
+    title: "AI Companion for Healing & Sleep | Deep Soul Lab",
+    description: "A minimalist AI companion designed to help you stop doomscrolling.",
     creator: "@DeepSoulAI",
   },
   robots: {
