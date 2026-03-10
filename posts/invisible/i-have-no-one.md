@@ -6,8 +6,6 @@ category: "Invisible"
 slug: "i-have-no-one"
 ---
 
-```markdown
-
 It’s 11:48 p.m.
 
 Your chest feels tight.  
@@ -280,4 +278,3 @@ You just need a little less isolation than you had 10 minutes ago.
 And that shift?
 
 It’s enough to begin.
-```

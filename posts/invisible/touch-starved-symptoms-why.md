@@ -6,8 +6,6 @@ category: "Invisible"
 slug: "touch-starved-symptoms-why"
 ---
 
-```markdown
-
 It’s 11:47 PM.
 
 You’re exhausted — but wired.
@@ -331,4 +329,3 @@ When you're ready, tap **“Start Incubation”** on the homepage to begin rebui
 Not by pushing through the ache.
 
 But by responding to it.
-```
