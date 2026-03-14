@@ -299,6 +299,16 @@ export default function ChatUI({ currentPersona, onPersonaChange, theme }: ChatU
               </p>
             </div>
           )}
+          
+          {/* 清空聊天关键词 */}
+          <div className="flex w-full justify-center mt-8">
+            <button
+              onClick={handleClearChat}
+              className="text-xs text-[#9ca3af] hover:text-white transition-colors duration-200 bg-transparent border-none cursor-pointer"
+            >
+              Clear my mind
+            </button>
+          </div>
 
           {/* TYPING INDICATOR (New Feature) */}
           {isTyping && messages.length > 0 && (
@@ -337,7 +347,7 @@ export default function ChatUI({ currentPersona, onPersonaChange, theme }: ChatU
 
       {/* FOOTER */}
       <div className={`w-full max-w-4xl mx-auto transition-all duration-500 ${isLimitReached ? 'opacity-0 pointer-events-none translate-y-10' : 'opacity-100 translate-y-0'}`}>
-        <ChatFooter input={input} setInput={setInput} onSend={handleSend} onClearChat={handleClearChat} theme={theme} />
+        <ChatFooter input={input} setInput={setInput} onSend={handleSend} theme={theme} />
       </div>
       
       {/* 清空对话确认弹窗 */}
