@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Music, MessageSquare, Home, Sparkles, Volume2, Mic } from 'lucide-react';
 import PaywallModal from './components/PaywallModal';
+import ChatFooter from '../../components/Footer';
 import { getGreeting, getNextReply, getThinkingTime, getTypingText } from './lib/chatLogic';
 import { useSpeech } from './hooks/useSpeech';
 
@@ -511,6 +512,9 @@ function ChatContent() {
             </div>
           </div>
         </div>
+        
+        {/* Footer Links */}
+        <ChatFooter variant="relative" />
       </div>
     </div>
   );

@@ -3,11 +3,25 @@
 import { useState } from 'react';
 import Modal from './Modal';
 
-export default function Footer() {
+interface FooterProps {
+  variant?: 'fixed' | 'relative';
+}
+
+export default function Footer({ variant = 'fixed' }: FooterProps) {
   const [isMedicalModalOpen, setIsMedicalModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  
+  const footerClasses = variant === 'fixed' 
+    ? "fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#050A18] to-transparent py-4"
+    : "relative w-full bg-white border-t border-[#A67C52]/30 py-3 mt-4";
+  
+  const buttonClasses = variant === 'fixed'
+    ? "text-xs md:text-sm text-[#6b7280] hover:text-white transition-colors duration-200 bg-transparent border-none cursor-pointer"
+    : "text-xs md:text-sm text-[#666666] hover:text-[#333333] transition-colors duration-200 bg-transparent border-none cursor-pointer";
+  
+  const separatorClasses = variant === 'fixed' ? "text-[#6b7280]" : "text-[#A67C52]/50";
 
   return (
     <>
@@ -45,9 +59,37 @@ export default function Footer() {
         onClose={() => setIsTermsModalOpen(false)} 
         title="Terms of Service"
       >
-        <p className="text-white/90">
-          Terms of Service content coming soon.
-        </p>
+        <div className="space-y-4 text-sm text-white/90 leading-relaxed">
+          <p>
+            Welcome to Zlseren. By accessing our platform, you agree to the following core terms:
+          </p>
+          
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-semibold text-white mb-1">Age Requirement:</h3>
+              <p className="text-white/80">You confirm you are 18 years of age or older.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-white mb-1">Not Medical Advice:</h3>
+              <p className="text-white/80">Zlseren provides AI-driven emotional companionship. It is not a clinical therapy service and cannot diagnose, treat, or cure mental health conditions.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-white mb-1">Appropriate Use:</h3>
+              <p className="text-white/80">You agree to interact respectfully and not use the service to generate illegal, harmful, or malicious content.</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-white mb-1">Liability:</h3>
+              <p className="text-white/80">Your use of the service is at your own risk. Zlseren is not liable for personal decisions or actions taken based on these interactions.</p>
+            </div>
+          </div>
+          
+          <p className="pt-2">
+            For our complete Terms of Service, please contact us.
+          </p>
+        </div>
       </Modal>
 
       {/* Contact Us Modal */}
@@ -67,33 +109,33 @@ export default function Footer() {
         </p>
       </Modal>
 
-      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#050A18] to-transparent py-4">
+      <footer className={footerClasses}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-center space-x-4 md:space-x-6">
             <button
               onClick={() => setIsMedicalModalOpen(true)}
-              className="text-xs md:text-sm text-[#6b7280] hover:text-white transition-colors duration-200 bg-transparent border-none cursor-pointer"
+              className={buttonClasses}
             >
               Medical Disclaimer
             </button>
-            <span className="text-[#6b7280]">•</span>
+            <span className={separatorClasses}>•</span>
             <button
               onClick={() => setIsPrivacyModalOpen(true)}
-              className="text-xs md:text-sm text-[#6b7280] hover:text-white transition-colors duration-200 bg-transparent border-none cursor-pointer"
+              className={buttonClasses}
             >
               Privacy & Data Deletion
             </button>
-            <span className="text-[#6b7280]">•</span>
+            <span className={separatorClasses}>•</span>
             <button
               onClick={() => setIsTermsModalOpen(true)}
-              className="text-xs md:text-sm text-[#6b7280] hover:text-white transition-colors duration-200 bg-transparent border-none cursor-pointer"
+              className={buttonClasses}
             >
               Terms of Service
             </button>
-            <span className="text-[#6b7280]">•</span>
+            <span className={separatorClasses}>•</span>
             <button
               onClick={() => setIsContactModalOpen(true)}
-              className="text-xs md:text-sm text-[#6b7280] hover:text-white transition-colors duration-200 bg-transparent border-none cursor-pointer"
+              className={buttonClasses}
             >
               Contact Us
             </button>
