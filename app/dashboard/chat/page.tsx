@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Music, MessageSquare, Home, Sparkles, Volume2, Mic } from 'lucide-react';
 import PaywallModal from './components/PaywallModal';
-import ChatFooter from '../../components/Footer';
+import ClearChatModal from './components/ClearChatModal';
 import { getGreeting, getNextReply, getThinkingTime, getTypingText } from './lib/chatLogic';
 import { useSpeech } from './hooks/useSpeech';
 
@@ -69,6 +69,9 @@ function ChatContent() {
   const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan | null>(null);
   const [showExpiryWarning, setShowExpiryWarning] = useState(false);
   const FREE_LIMIT = 7;
+
+  // === CLEAR CHAT STATE ===
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
   // === Check subscription status on load ===
   useEffect(() => {
@@ -244,6 +247,39 @@ function ChatContent() {
   const handleQuickReply = (text: string) => {
     setInput(text);
     handleSend();
+  };
+
+  // === Clear chat handler ===
+  const handleClearChat = () => {
+    setIsClearModalOpen(true);
+  };
+
+  const confirmClearChat = () => {
+    setIsClearModalOpen(false);
+    // Reset chat to initial state
+    setMessages([{ role: 'ai', content: '' }]);
+    setStep(0);
+    setMessageCount(0);
+    
+    // Restart greeting animation
+    let index = 0;
+    setDisplayedText('');
+    const text = getGreeting(currentPersona);
+    setFullText(text);
+    setTypingStatus(getTypingText(currentPersona));
+    setIsTyping(true);
+    
+    const intervalId = setInterval(() => {
+      setDisplayedText((prev) => {
+        if (index < text.length) {
+          index++;
+          return text.slice(0, index);
+        }
+        clearInterval(intervalId);
+        setIsTyping(false);
+        return prev;
+      });
+    }, 40);
   };
 
   // 格式化剩余时间
@@ -473,7 +509,7 @@ function ChatContent() {
           <div className="max-w-2xl mx-auto space-y-3">
             {/* Quick Replies */}
             {!isLimitReached && (
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <div className="flex gap-2 overflow-x-auto pb-2 items-center">
                 {getQuickReplies(currentPersona).map((reply, idx) => (
                   <button 
                     key={idx}
@@ -483,6 +519,12 @@ function ChatContent() {
                     {reply}
                   </button>
                 ))}
+                <button
+                  onClick={handleClearChat}
+                  className="px-4 py-2 rounded-full text-sm whitespace-nowrap bg-transparent border border-[#A67C52]/50 text-[#A67C52] hover:bg-[#A67C52]/10 transition-colors"
+                >
+                  Clear my mind
+                </button>
               </div>
             )}
 
@@ -513,8 +555,12 @@ function ChatContent() {
           </div>
         </div>
         
-        {/* Footer Links */}
-        <ChatFooter variant="relative" />
+        {/* Clear Chat Modal */}
+        <ClearChatModal 
+          isOpen={isClearModalOpen} 
+          onClose={() => setIsClearModalOpen(false)} 
+          onConfirm={confirmClearChat}
+        />
       </div>
     </div>
   );
