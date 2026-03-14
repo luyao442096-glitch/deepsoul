@@ -397,11 +397,12 @@ const ArticlePageUI = ({ slug, id, post, relatedPosts = [] }: ArticlePageUIProps
           </p>
         </footer>
       </section>
+      <div className="h-24" />
       
       {/* --- 侧边悬浮按钮 (Floating CTA) --- */}
       <Link 
         href={`/${slug}/onboarding`}
-        className="fixed bottom-8 right-8 z-50 group"
+        className="fixed bottom-20 right-8 z-50 group"
       >
         <motion.button 
           whileHover={{ scale: 1.05 }}

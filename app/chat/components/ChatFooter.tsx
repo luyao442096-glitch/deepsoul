@@ -6,6 +6,7 @@ interface ChatFooterProps {
   input: string;
   setInput: (value: string) => void;
   onSend: () => void;
+  onClearChat?: () => void;
   theme: {
     bg: string;
     container: string;
@@ -18,7 +19,7 @@ interface ChatFooterProps {
   };
 }
 
-export default function ChatFooter({ input, setInput, onSend, theme }: ChatFooterProps) {
+export default function ChatFooter({ input, setInput, onSend, onClearChat, theme }: ChatFooterProps) {
   // === PANDA STATE ===
   const [showPetModal, setShowPetModal] = useState(false);
   const [userCredits, setUserCredits] = useState(5);
@@ -58,6 +59,14 @@ export default function ChatFooter({ input, setInput, onSend, theme }: ChatFoote
             placeholder="Tell me what's on your mind..."
             className={`w-full bg-transparent border-none ${theme.textMain} px-5 py-3 focus:outline-none placeholder:${theme.textSub} font-light text-base`}
           />
+          {onClearChat && (
+            <button 
+              onClick={onClearChat}
+              className="text-xs text-[#9ca3af] hover:text-white transition-colors duration-200 bg-transparent border-none cursor-pointer px-2"
+            >
+              Clear my mind
+            </button>
+          )}
           <button onClick={onSend} className={`p-3 rounded-full ${theme.textSub} hover:${theme.textMain} transition-all shrink-0`}>↑</button>
         </div>
         

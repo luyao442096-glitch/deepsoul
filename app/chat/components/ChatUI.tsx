@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ChatFooter from './ChatFooter';
 import PaywallModal from './PaywallModal';
+import ClearChatModal from './ClearChatModal';
 // Import new advanced logic
 import { getGreeting, getNextReply, getThinkingTime, getTypingText } from '../lib/chatLogic';
 
@@ -48,6 +49,8 @@ export default function ChatUI({ currentPersona, onPersonaChange, theme }: ChatU
   const [subscriptionExpiry, setSubscriptionExpiry] = useState<number | null>(null);
   const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan | null>(null);
   const [showExpiryWarning, setShowExpiryWarning] = useState(false);
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const [isCleared, setIsCleared] = useState(false);
   const FREE_LIMIT = 7; // UPDATED TO 7 STEPS (The Golden Ratio)
 
   // === Check subscription status on load ===
@@ -187,6 +190,39 @@ export default function ChatUI({ currentPersona, onPersonaChange, theme }: ChatU
     return plan === 'weekly' ? '一周试用' : '一月体验';
   };
 
+  // 清空对话功能
+  const handleClearChat = () => {
+    setIsClearModalOpen(true);
+  };
+
+  const confirmClearChat = () => {
+    setIsClearModalOpen(false);
+    setIsCleared(true);
+    
+    // 重新开始对话
+    setTimeout(() => {
+      setMessages([{ role: 'ai', content: '' }]);
+      setStep(0);
+      setMessageCount(0);
+      setIsCleared(false);
+      
+      // 重新显示问候语
+      let index = 0;
+      setDisplayedText('');
+      const text = getGreeting(currentPersona);
+      setFullText(text);
+      setTypingStatus(getTypingText(currentPersona));
+      setIsTyping(true);
+      
+      const intervalId = setInterval(() => {
+        setDisplayedText((prev) => {
+          if (index < text.length) { index++; return text.slice(0, index); }
+          clearInterval(intervalId); setIsTyping(false); return prev;
+        });
+      }, 40);
+    }, 500);
+  };
+
   return (
     <div className={`relative z-10 flex flex-col h-full w-full max-w-7xl mx-auto ${theme.textMain}`}>
       
@@ -240,7 +276,7 @@ export default function ChatUI({ currentPersona, onPersonaChange, theme }: ChatU
 
           {/* HISTORY */}
           {messages.slice(1).map((msg, idx) => (
-             <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+             <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${isCleared ? 'opacity-0 transition-opacity duration-500' : 'transition-opacity duration-500'}`}>
                 <div
                   className={`
                     px-6 py-4 leading-relaxed shadow-xl backdrop-blur-md text-base md:text-lg animate-in fade-in slide-in-from-bottom-2 max-w-[45%]
@@ -254,6 +290,15 @@ export default function ChatUI({ currentPersona, onPersonaChange, theme }: ChatU
                 </div>
              </div>
           ))}
+
+          {/* 清空后的提示语 */}
+          {isCleared && (
+            <div className="flex w-full justify-center">
+              <p className="text-xs text-gray-500 animate-in fade-in slide-in-from-bottom-2">
+                Your thoughts have been gently cleared.
+              </p>
+            </div>
+          )}
 
           {/* TYPING INDICATOR (New Feature) */}
           {isTyping && messages.length > 0 && (
@@ -292,8 +337,15 @@ export default function ChatUI({ currentPersona, onPersonaChange, theme }: ChatU
 
       {/* FOOTER */}
       <div className={`w-full max-w-4xl mx-auto transition-all duration-500 ${isLimitReached ? 'opacity-0 pointer-events-none translate-y-10' : 'opacity-100 translate-y-0'}`}>
-        <ChatFooter input={input} setInput={setInput} onSend={handleSend} theme={theme} />
+        <ChatFooter input={input} setInput={setInput} onSend={handleSend} onClearChat={handleClearChat} theme={theme} />
       </div>
+      
+      {/* 清空对话确认弹窗 */}
+      <ClearChatModal 
+        isOpen={isClearModalOpen} 
+        onClose={() => setIsClearModalOpen(false)} 
+        onConfirm={confirmClearChat} 
+      />
     </div>
   );
 }

@@ -153,13 +153,6 @@ const CategoryPageUI = ({ currentSlug, categoryPosts, displayTitle, content }: C
           )}
         </div>
       </section>
-
-      {/* --- 底部温馨提示 (保持全站统一) --- */}
-      <footer className="py-12 text-center">
-        <p className="text-[10px] text-white/20">
-          DeepSoul AI • Companion for {displayTitle}
-        </p>
-      </footer>
     </main>
   );
 };

@@ -218,6 +218,7 @@ export default function HomePage() {
           })}
         </div>
       </section>
+      <div className="h-24" />
     </div>
   );
 }
