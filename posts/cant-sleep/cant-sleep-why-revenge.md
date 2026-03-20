@@ -1,5 +1,5 @@
 ---
-title: "Can't Sleep? Why Revenge Bedtime Procrastination Is Keeping You Awake (A Gentle Recovery Guide)"
+title: "Can’t Sleep?Why Revenge Bedtime Procrastination Is Keeping You Awake (A Gentle Recovery Guide)"
 date: "2026-02-12"
 description: "For many, the moment you close your eyes, the 'Sunday Scaries' hit (even on a Tuesday). Staying awake is a way to pause time."
 category: "Can't Sleep"

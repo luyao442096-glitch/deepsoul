@@ -1,12 +1,12 @@
 ---
-title: "Can’t Sleep? Revenge Bedtime Procrastination ADHD: The Dopamine Trap Explained"
+title: "Can't Sleep? Revenge Bedtime Procrastination ADHD: The Dopamine Trap Explained"
 date: 2026-03-20
-description: "Can’t sleep at night? Discover how revenge bedtime procrastination and ADHD create a dopamine trap—and how to break the cycle and finally rest."
+description: "Can't sleep at night? Discover how revenge bedtime procrastination and ADHD create a dopamine trap—and how to break the cycle and finally rest."
 category: "cant-sleep"
 slug: "cant-sleep"
 ---
 
-# Can’t Sleep? Revenge Bedtime Procrastination ADHD: The Dopamine Trap Explained
+# Revenge Bedtime Procrastination ADHD: The Dopamine Trap Explained
 
 ## Do you ever feel like…
 

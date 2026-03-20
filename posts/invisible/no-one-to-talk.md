@@ -1,5 +1,5 @@
 ---
-title: "No One to Talk to Right Now? Awake at 3 AM? Why It’s Safer to Vent to AI"
+title: " Awake at 3 AM? Why It’s Safer to Vent to AI"
 date: 2026-03-20
 description: "Feeling awake at 3 AM with no one to talk to? Discover why venting to AI can be safer for processing emotions and managing loneliness late at night."
 category: "invisible"

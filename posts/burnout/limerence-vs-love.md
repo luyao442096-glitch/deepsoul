@@ -1,5 +1,5 @@
 ---
-title: "Limerence vs Love: How to Break a Limerence Episode with the No Contact Rule Explained"
+title: "How to Break a Limerence Episode with the No Contact Rule Explained"
 date: 2026-03-20
 description: "Limerence vs Love explained: discover the key differences and learn how to break a limerence episode using the No Contact rule to regain emotional control."
 category: "Spiraling"

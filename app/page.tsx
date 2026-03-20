@@ -189,10 +189,9 @@ export default function HomePage() {
                 </h3>
                 <div className="flex flex-col space-y-3">
                   {recentArticles
-                    // 修正筛选：同时匹配分类名 OR 文件夹名，确保万无一失
+                    // 筛选逻辑：匹配分类名
                     .filter((article) => 
-                      article.category === category || 
-                      article.category === slug
+                      article.category === category
                     )
                     .slice(0, 5)
                     .map((post) => (

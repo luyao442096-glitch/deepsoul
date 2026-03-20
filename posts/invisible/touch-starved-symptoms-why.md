@@ -1,5 +1,5 @@
 ---
-title: "Touch Starved Symptoms: Why Your Body Actually Aches (Science Explained)"
+title: " Why Your Body Actually Aches (Science Explained)"
 date: 2026-02-12
 description: "If processing the emotions behind this feels vulnerable, a private reflection space — like DeepSoul’s quiet mode — can help you untangle the feeling without ..."
 category: "Invisible"
