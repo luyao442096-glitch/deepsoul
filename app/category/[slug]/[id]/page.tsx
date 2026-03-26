@@ -124,11 +124,11 @@ export default function ArticlePage({ params }: { params: Promise<{ slug: string
         {/* 第一屏：主内容 */}
         <div className="z-10 min-h-screen flex flex-col items-center justify-center px-6 relative">
           {/* 标题 */}
-          <h1 
+          <div 
             className="text-4xl md:text-5xl font-serif mb-8 leading-tight"
           >
             How is your energy?
-          </h1>
+          </div>
           
           {/* 副标题 */}
           <p 
@@ -220,9 +220,9 @@ export default function ArticlePage({ params }: { params: Promise<{ slug: string
           <div 
             className="mb-12 text-center"
           >
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-white mb-6 leading-tight">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif text-white mb-6 leading-tight">
               {post.title}
-            </h2>
+            </h1>
             <div className="flex items-center justify-center space-x-4 text-sm text-white/40 mb-8">
               <time dateTime={post.date}>
                 {new Date(post.date).toLocaleDateString('en-US', {
@@ -380,10 +380,10 @@ export default function ArticlePage({ params }: { params: Promise<{ slug: string
         className="fixed bottom-20 right-8 z-50 group"
       >
         <button 
-          className="relative px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600/30 to-purple-600/30 border border-white/20 hover:border-white/30 transition-all duration-300 backdrop-blur-sm shadow-lg hover:shadow-xl"
+          className="relative px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600/40 to-purple-600/40 border border-white/30 hover:border-white/40 transition-all duration-300 backdrop-blur-sm shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30"
         >
           <span className="text-sm tracking-[0.1em] uppercase text-white/90 group-hover:text-white flex items-center gap-2">
-            Start Incubation <ArrowRight className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+            Clear Your Mind ✨
           </span>
         </button>
       </Link>
