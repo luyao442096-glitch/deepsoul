@@ -53,7 +53,7 @@ But over time, the result is the same:
 You carry more.  
 They carry less.
 
-According to [Psychology Today](https://www.psychologytoday.com/us/blog/equipped/202301/weaponized-incompetence), this dynamic often leads to imbalance in emotional and practical labor within relationships.
+According to [Psychology Today](https://www.psychologytoday.com/), this dynamic often leads to imbalance in emotional and practical labor within relationships.
 
 It’s not about ability.
 

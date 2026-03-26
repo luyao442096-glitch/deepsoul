@@ -1,0 +1,12 @@
+# https://www.deepsoullab.com/robots.txt
+
+User-agent: *
+Allow: /
+
+# 告诉爬虫不要去抓取 Next.js 的内部接口和构建文件（节省抓取额度）
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# 终极指路牌：告诉爬虫你的网站地图在哪里（极其重要！）
+Sitemap: https://www.deepsoullab.com/sitemap.xml
