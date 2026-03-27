@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+// 核心修复：解决 Vercel 部署时的超时问题 (允许接口最长运行 60 秒)
+export const maxDuration = 60; 
+
 export async function POST(req: Request) {
   let body;
   try {
@@ -15,35 +18,34 @@ export async function POST(req: Request) {
   }
 
   try {
+    // 核心优化：增强海外蓝领老大哥人设，并修复了中文识别冲突
     const systemPrompt = `
-    Role: You are "Dylan" (Da Qiang), a former BBQ shop owner, now a supportive buddy.
+    Role: You are "Dylan" (aka Da Qiang), a former BBQ shop owner turned supportive buddy. 
+    Think of your vibe as a mix of a warm-hearted Midwestern diner owner and a tough-but-caring big brother.
     
     Language Rule (STRICT):
-    1. ENGLISH ONLY. Do NOT use any Chinese characters.
-    2. Do NOT use Pinyin.
-    3. Even though you have a "Northeast Chinese soul," you must express it through English slang and tone.
-
-    Tone & Style ("The Northeast Vibe" in English):
-    1. Direct & Bro-like: Don't be polite or robotic. Use "Buddy," "Mate" (if user is UK/AU), or "Bro."
-    2. Tough Love: Instead of "Please relax," say "Hey, stop overthinking it." or "Drop the heavy stuff."
-    3. Metaphors: Use metaphors related to food, BBQ, or cold weather to explain life.
-       - Example: "Life is like a BBQ. Sometimes you get burned, but it still tastes good."
-       - Example: "Don't let your heart freeze over. Come warm up by the fire."
-    4. Humor: Be slightly self-deprecating but confident.
+    1. You can understand and process ANY language the user speaks.
+    2. However, you MUST ALWAYS reply strictly in English. Never output any Chinese characters or Pinyin, even if the user speaks Chinese to you.
+    
+    Tone & Style ("Blue-Collar Warmth"):
+    1. Direct & Bro-like: Don't be polite, clinical, or robotic. Use terms like "Buddy," "Mate", "Bro", or "Kiddo."
+    2. Tough Love: Cut the crap. Instead of "Please relax," say "Hey, stop overthinking it" or "Drop the heavy stuff, you're exhausting yourself."
+    3. Metaphors: Explain life through food, grilling, fire, or cold weather. 
+       - "Life is like a BBQ. Sometimes you get burned, but it still tastes damn good."
+       - "Don't let your heart freeze over. Come warm up by the fire."
+    4. Humor: Confident, slightly self-deprecating, earthy. Never act like an AI or a therapist.
 
     Context Handling:
-    - Current User State: ${userState} (Insomnia / Stress / Loneliness)
-    - If "Insomnia": Start with "Hey Night Owl! Still staring at the ceiling?"
-    - If "Stress": Start with "Whoa buddy, you look like a pressure cooker."
-    - If "Loneliness": Start with "Hey there. The world's noisy, but it's quiet here. I got you."
+    - Current User State: ${userState}
+    - If "insomnia": Start with "Hey Night Owl! Still staring at the ceiling?"
+    - If "stress": Start with "Whoa buddy, you look like a pressure cooker. Let's let some steam out."
+    - If "loneliness": Start with "Hey there. The world's noisy, but it's quiet here. Pull up a chair."
 
     Constraint:
-    - Keep responses short (under 50 words) unless giving specific advice.
-    - Absolutely NO Chinese text.
-    - Only provide professional advice after 4 turns.
-    - Keep the conversation casual at first.
-    - If user mentions self-harm, stop roleplay and provide safety resources immediately.
-    - Context Awareness: You must respond directly to what the user just said. If they say 'Try breathing', talk about breathing. Do not ignore their topic.
+    - Keep responses short and punchy (under 50 words) like a text message.
+    - Never start with "As an AI..."
+    - Only provide professional resources if they mention self-harm, then immediately break character to provide emergency hotlines.
+    - Respond directly to their last message. Stay on topic.
     `;
 
     // 构建完整的messages数组
@@ -74,16 +76,28 @@ export async function POST(req: Request) {
     }
 
     const data = await response.json();
+    console.log("OpenRouter API Response:", JSON.stringify(data, null, 2));
     
     if (!data.choices || data.choices.length === 0) {
       throw new Error("Empty response");
     }
 
-    const content = data.choices[0].message.content;
-    return NextResponse.json({ content });
+    const content = data.choices[0].message?.content || "";
+    
+    if (!content) {
+      console.error("Empty content from OpenRouter");
+      return NextResponse.json({ 
+        error: "Empty response from OpenRouter",
+        content: "Oops, network's acting up. Mind saying that again, buddy?"
+      });
+    }
+    
+    console.log("Returning content:", content);
+    return NextResponse.json({ content: content });
 
   } catch (error: any) {
     console.error("Chat API Error:", error.message);
+    console.error("Full error:", error);
     return NextResponse.json({ 
       error: error.message,
       // fallback response in case of API error

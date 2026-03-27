@@ -213,7 +213,9 @@ function ChatContent() {
 
     try {
       // Build complete messages array including history
-      const messagesForAPI = messages.slice(1).concat(newUserMessage);
+      // 直接使用当前消息和新消息，确保使用最新的消息
+      const messagesForAPI = [...messages.slice(1), newUserMessage];
+      console.log('Messages sent to API:', messagesForAPI);
 
       // Call chat API
       const response = await fetch('/api/chat', {
@@ -227,17 +229,30 @@ function ChatContent() {
         })
       });
 
-      const data = await response.json();
+      console.log('API Response Status:', response.status);
       
-      if (data.content) {
+      // 检查响应是否有效
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('API Response Data:', data);
+      
+      // 确保content存在且为字符串
+      if (data && typeof data === 'object' && 'content' in data && typeof data.content === 'string') {
         setIsTyping(false);
         setMessages(prev => [...prev, { role: 'ai', content: data.content }]);
+        console.log('Added message:', data.content);
+      } else {
+        throw new Error('Invalid response format');
       }
     } catch (error) {
       console.error('Chat API error:', error);
       // Fallback to previous behavior if API fails
       setIsTyping(false);
       setMessages(prev => [...prev, { role: 'ai', content: 'Oops, network\'s acting up. Mind saying that again, buddy?' }]);
+      console.log('Added error fallback message');
     }
   };
 

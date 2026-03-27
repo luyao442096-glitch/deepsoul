@@ -11,8 +11,7 @@ interface PayPalCheckoutProps {
 export default function PayPalCheckout({ amount, planName, onSuccess }: PayPalCheckoutProps) {
   // Config options for the PayPal SDK
   const initialOptions = {
-    // Keep your Sandbox Client ID here
-    clientId: "AXTHH0Hd3_UJ0agzjYWLS3P0QA4MzgjAmJRuNz6o5t1FnVt5YcfJSzkjaVNc3XYAc6pNv29I1QJ2fOPI",
+    clientId: "AVXfJaSqD7wLzFKHU_PstbwXg3fpWJ2Cd622YISrCxGz1D4Et0d7g8Pjttra3u99CI6v-asM5_o2Khmk",
     currency: "USD",
     intent: "capture",
   };
