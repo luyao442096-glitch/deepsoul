@@ -6,8 +6,6 @@ category: "Burnout"
 slug: "limerence-vs-love-5"
 ---
 
-```markdown
-
 You can’t stop thinking about them.
 
 Your chest tightens when they don’t text back.

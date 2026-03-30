@@ -6,8 +6,6 @@ category: "Burnout"
 slug: "sleep-divorce-why-separate"
 ---
 
-```markdown
-
 You love your partner.
 
 You just can’t sleep next to them anymore.

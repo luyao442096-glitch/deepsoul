@@ -1,6 +1,6 @@
 ---
 title: "Weaponized Incompetence at Home: Why You’re Burnt Out as a Mom"
-date: 2026-03-27
+date: 2026-03-30
 description: "Feeling exhausted doing everything alone? Weaponized incompetence at home may be the hidden cause of mom burnout—learn how to stop the cycle."
 category: "burnout"
 slug: "weaponized-incompetence-mom-burnout"

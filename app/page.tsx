@@ -46,8 +46,14 @@ export default function HomePage() {
 
   const loadRecentArticles = async () => {
     try {
-      const response = await fetch('/api/recent-articles');
+      const response = await fetch('/api/recent-articles', {
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       const data = await response.json();
+      console.log('Recent articles loaded:', data.length);
+      console.log('Burnout articles:', data.filter(article => article.category === 'Burnout').length);
       setRecentArticles(data);
     } catch (error) {
       console.error('Error loading recent articles:', error);

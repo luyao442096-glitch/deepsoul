@@ -1,14 +1,12 @@
 ---
-title: "What Is “Hurkle-Durkle”? The 200-Year-Old Trend Replacing Bed Rotting (And Why Your Nervous System Might Need It)"
+title: "What Is "Hurkle-Durkle"? The 200-Year-Old Trend Replacing Bed Rotting (And Why Your Nervous System Might Need It)"
 date: 2026-02-12
 description: "Let’s untangle what hurkle-durkle really is, how it differs from bed rotting, and whether this 200-year-old habit could actually be protective instead of des..."
 category: "Burnout"
 slug: "what-is-hurkle-durkle"
 ---
 
-```markdown
-
-“Hurkle-durkle” sounds like a joke.
+"Hurkle-durkle" sounds like a joke.
 
 It isn’t.
 

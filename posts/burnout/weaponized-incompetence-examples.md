@@ -1,6 +1,6 @@
 ---
 title: "Examples of Weaponized Incompetence: Why ‘You Do It Better Than Me’ Is a Red Flag"
-date: 2026-03-27
+date: 2026-03-30
 description: "“You just do it better than me” might not be harmless. Discover real examples of weaponized incompetence and why it leads to burnout."
 category: "burnout"
 slug: "weaponized-incompetence-examples"

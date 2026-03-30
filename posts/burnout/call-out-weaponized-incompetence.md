@@ -1,6 +1,6 @@
 ---
 title: "How to Call Out Weaponized Incompetence Without Starting a Fight (Without Drama)"
-date: 2026-03-27
+date: 2026-03-30
 description: "Tired of doing everything but afraid to speak up? Learn how to call out weaponized incompetence without starting a fight—and protect your energy."
 category: "burnout"
 slug: "call-out-weaponized-incompetence"
