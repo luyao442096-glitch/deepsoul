@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import FooterWrapper from "./components/FooterWrapper";
+import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,11 +58,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const canonicalUrl = `https://www.deepsoullab.com${pathname || '/'}`;
+  
   return (
     <html lang="en">
       <head>
-        <script src="/lib/live2d.min.js"></script>
         <script src="https://analytics.ahrefs.com/analytics.js" data-key="FM3pKixPjKJXg+PzyhnXZA" async></script>
+        <link rel="canonical" href={canonicalUrl} />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#050A18" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

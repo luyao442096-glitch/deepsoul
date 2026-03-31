@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -93,12 +94,12 @@ export default function LoginPage() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="mt-16"
         >
-          <button
-            onClick={() => router.push('/')}
+          <Link
+            href="/"
             className="text-sm text-white/40 hover:text-white transition-colors underline-offset-4 hover:underline"
           >
             Back to Home
-          </button>
+          </Link>
         </motion.div>
       </div>
     </div>

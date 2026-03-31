@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function QuizPage() {
   const router = useRouter();
@@ -47,6 +48,16 @@ export default function QuizPage() {
   return (
     <div className="min-h-screen w-full bg-[#F8F5F0] text-[#333333] flex flex-col items-center justify-center p-4 overflow-hidden relative">
       
+      {/* Back to Home link */}
+      <div className="absolute top-8 left-8 z-20">
+        <Link
+          href="/"
+          className="text-sm text-[#333333]/60 hover:text-[#333333] transition-colors underline-offset-4 hover:underline"
+        >
+          ← Back to Home
+        </Link>
+      </div>
+
       <AnimatePresence mode="wait">
         {isLoading ? (
           <motion.div 

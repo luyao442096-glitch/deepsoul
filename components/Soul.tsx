@@ -23,22 +23,10 @@ export default function Soul({ isTalking, modelPath }: SoulProps) {
     let isMounted = true;
 
     const init = async () => {
-      // 1. 加载核心库 (防止抢跑)
+      // 1. 检查 Live2D 库是否可用
       if (!(window as any).Live2DCubismCore) {
-        await Promise.all([
-          new Promise((resolve) => {
-            const script = document.createElement('script');
-            script.src = '/lib/live2dcubismcore.min.js';
-            script.onload = resolve;
-            document.body.appendChild(script);
-          }),
-          new Promise((resolve) => {
-            const script = document.createElement('script');
-            script.src = '/lib/live2d.min.js';
-            script.onload = resolve;
-            document.body.appendChild(script);
-          })
-        ]);
+        console.warn("⚠️ Live2D 库未加载，跳过模型渲染");
+        return;
       }
 
       // 2. 加载插件

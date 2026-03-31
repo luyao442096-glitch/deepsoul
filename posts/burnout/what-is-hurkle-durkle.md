@@ -1,22 +1,24 @@
 ---
-title: "Examples of Weaponized Incompetence: Why ‘You Do It Better Than Me’ Is a Red Flag"
-date: 2026-03-30
-description: "“You just do it better than me” might not be harmless. Discover real examples of weaponized incompetence and why it leads to burnout."
+title: "What Is """Hurkle-Durkle"""? The 200-Year-Old Trend Replacing Bed Rotting (And Why Your Nervous System Might Need It)"
+date: 2026-02-12
+description: "Let's untangle what hurkle-durkle really is, how it differs from bed rotting, and whether this 200-year-old habit could actually be protective instead of destructive."
 category: "burnout"
-slug: "weaponized-incompetence-examples"
+slug: "what-is-hurkle-durkle"
 ---
 
-# Examples of Weaponized Incompetence: “You Just Do It Better Than Me”
+# What Is """Hurkle-Durkle"""? The 200-Year-Old Trend Replacing Bed Rotting
 
 ## Hook
 
-Do you ever hear “you’re just better at this”… and somehow end up doing everything?
+"""Hurkle-durkle""" sounds like a joke.
 
-It sounds like a compliment.
+It isn't.
 
-At first.
+The word dates back nearly 200 years, originally meaning to lounge in bed long after it's time to get up. But unlike modern """bed rotting""", hurkle-durkling wasn't framed as laziness, avoidance, or collapse.
 
-But then it keeps happening.
+It was simply… staying warm. Staying still. Letting the world wait.
+
+And for a generation exhausted by productivity culture, constant notifications, and quiet burnout, this old Scottish phrase is making a strange kind of sense.
 
 You organize.  
 You plan.  
