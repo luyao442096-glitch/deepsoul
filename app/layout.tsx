@@ -61,6 +61,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <script src="/lib/live2d.min.js"></script>
+        <script src="https://analytics.ahrefs.com/analytics.js" data-key="FM3pKixPjKJXg+PzyhnXZA" async></script>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#050A18" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
