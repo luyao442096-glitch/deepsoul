@@ -154,6 +154,9 @@ export default function PetPage() {
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
+      {/* Hidden H1 for SEO */}
+      <h1 className="sr-only">Virtual Pet - Mindful Wooden Fish Interaction</h1>
+      
       {/* Breadcrumb Navigation */}
       <div className="absolute top-6 left-6 z-50 flex items-center gap-2 text-white/50 text-sm font-serif">
         <Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>

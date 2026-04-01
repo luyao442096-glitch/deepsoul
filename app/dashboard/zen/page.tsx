@@ -8,6 +8,9 @@ export default function DeepZenPage() {
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden bg-black">
+      {/* Hidden H1 for SEO */}
+      <h1 className="sr-only">Deep Zen - Meditation and Relaxation Video</h1>
+      
       {/* Back Button */}
       <button
         onClick={() => router.push('/dashboard')}

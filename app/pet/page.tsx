@@ -153,6 +153,9 @@ export default function PetPage() {
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
+      {/* Hidden H1 for SEO */}
+      <h1 className="sr-only">Virtual Pet - Mindful Wooden Fish Interaction</h1>
+      
       <div className="absolute inset-0">
         <img 
           src="/bg-zen.jpg" 

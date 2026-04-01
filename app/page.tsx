@@ -180,6 +180,23 @@ export default function HomePage() {
             </motion.div>
           ))}
         </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="mt-12 flex justify-center"
+        >
+          <Link href="/quiz">
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-medium transition-all duration-300 transform hover:shadow-lg"
+            >
+              Start Healing
+            </motion.button>
+          </Link>
+        </motion.div>
       </div>
 
       {/* 第二屏：修正后的列表逻辑 */}

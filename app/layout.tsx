@@ -33,12 +33,21 @@ export const metadata: Metadata = {
     title: "AI Companion for Healing & Sleep | Deep Soul Lab",
     description: "A minimalist AI companion designed to help you stop doomscrolling and fall asleep peacefully.",
     siteName: "Deep Soul Lab",
+    images: [
+      {
+        url: "https://www.deepsoullab.com/bg-zen.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Deep Soul Lab - AI Companion for Healing and Sleep",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "AI Companion for Healing & Sleep | Deep Soul Lab",
     description: "A minimalist AI companion designed to help you stop doomscrolling.",
     creator: "@DeepSoulAI",
+    images: ["https://www.deepsoullab.com/bg-zen.jpg"],
   },
   robots: {
     index: true,

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Modal from './Modal';
+import Link from 'next/link';
 
 interface FooterProps {
   variant?: 'fixed' | 'relative';
@@ -139,6 +140,13 @@ export default function Footer({ variant = 'fixed' }: FooterProps) {
             >
               Contact Us
             </button>
+            <span className={separatorClasses}>•</span>
+            <Link
+              href="/login"
+              className={buttonClasses}
+            >
+              Login
+            </Link>
           </div>
         </div>
       </footer>
