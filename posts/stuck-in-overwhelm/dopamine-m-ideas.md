@@ -2,8 +2,8 @@
 title: "Dopamine Menu Ideas 2026: A Visual Guide to Beating Boredom"
 date: 2026-03-20
 description: "Discover Dopamine Menu Ideas 2026 and learn how to beat boredom with a curated visual guide of rewarding, engaging activities to lift your mood."
-category: "cant-sleep"
-slug: "dopamine-menu-ideas"
+category: "Stuck in Overwhelm"
+slug: "dopamine-menu-ideas-2026"
 ---
 
 # Dopamine Menu Ideas 2026: A Visual Guide to Beating Boredom
