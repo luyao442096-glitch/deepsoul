@@ -1,5 +1,5 @@
 ---
-title: "Intrusive Thoughts or Overthinking? Take This Quiz to Understand Your Mind"
+title: "Intrusive Thoughts or Overthinking? 5 Signs to Understand Your Mind "
 date: 2026-04-13
 description: "Struggling with intrusive thoughts or constant overthinking? Take this quiz to understand your mental patterns and learn how to stop overthinking loops safely."
 category: "spiraling"
