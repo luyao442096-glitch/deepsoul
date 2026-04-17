@@ -1,5 +1,5 @@
 ---
-title: "Task Paralysis: 5 Gentle Ways to Get Unstuck When Overwhelmed"
+title: "ADHD Paralysis: 5 Gentle Ways to Get Unstuck"
 date: 2026-04-16
 description: "Feeling stuck and unable to start? Learn how to get unstuck from task paralysis overwhelm with gentle, non-medical strategies for exhausted minds."
 category: "Stuck in Overwhelm"
