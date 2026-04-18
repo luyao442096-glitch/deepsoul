@@ -124,9 +124,6 @@ export default function RootLayout({
           src="https://analytics.ahrefs.com/analytics.js"
           data-key="FM3pKixPjKJXg+PzyhnXZA"
           strategy="lazyOnload"
-          onLoad={() => {
-            console.log("Ahrefs Analytics loaded successfully");
-          }}
         />
       </body>
     </html>
