@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import FooterWrapper from "./components/FooterWrapper";
 import CanonicalLink from "./components/CanonicalLink";
@@ -70,7 +71,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script src="https://analytics.ahrefs.com/analytics.js" data-key="FM3pKixPjKJXg+PzyhnXZA" async></script>
         <CanonicalLink />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#050A18" />
@@ -120,6 +120,14 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
         <FooterWrapper />
+        <Script
+          src="https://analytics.ahrefs.com/analytics.js"
+          data-key="FM3pKixPjKJXg+PzyhnXZA"
+          strategy="lazyOnload"
+          onLoad={() => {
+            console.log("Ahrefs Analytics loaded successfully");
+          }}
+        />
       </body>
     </html>
   );
