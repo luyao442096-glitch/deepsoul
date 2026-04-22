@@ -5,6 +5,19 @@ import { createServerClient } from '@supabase/ssr';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // 301 重定向规则
+  const redirects: Record<string, string> = {
+    '/category/invisible/i-have-no-one': '/category/invisible/3am-vent-to-ai',
+    '/category/invisible/no-one-to-talk': '/category/invisible/3am-vent-to-ai'
+  };
+
+  // 检查是否需要重定向
+  if (redirects[pathname]) {
+    const url = request.nextUrl.clone();
+    url.pathname = redirects[pathname];
+    return NextResponse.redirect(url, 301);
+  }
+
   // 定义受保护的路由
   const protectedRoutes = [
     '/dashboard',
