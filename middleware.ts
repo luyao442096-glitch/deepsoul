@@ -8,7 +8,8 @@ export async function middleware(request: NextRequest) {
   // 301 重定向规则
   const redirects: Record<string, string> = {
     '/category/invisible/i-have-no-one': '/category/invisible/3am-vent-to-ai',
-    '/category/invisible/no-one-to-talk': '/category/invisible/3am-vent-to-ai'
+    '/category/invisible/no-one-to-talk': '/category/invisible/3am-vent-to-ai',
+    '/category/burnout/drained-after-work': '/category/burnout/feel-drained-after-work'
   };
 
   // 检查是否需要重定向
